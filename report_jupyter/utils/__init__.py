@@ -833,7 +833,7 @@ def plot_text_complexity_analysis(df: pd.DataFrame) -> None:
     """
     columns = ['title', 'summary', 'comment']
     for column in columns:
-        df[f'{column}_ari'] = df[column].apply(calculate_ari)
+        df.loc[:, f'{column}_ari'] = df[column].apply(calculate_ari)
 
     for i, column in enumerate(columns):
         plt.figure(figsize=(10, 6))
