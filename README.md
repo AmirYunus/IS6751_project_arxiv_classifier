@@ -19,3 +19,8 @@
    ```
    python -m pip install --force-reinstall -r requirements.txt
    ```
+
+5. Download NLTK stopwords and punkt:
+   ```
+   python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt')"
+   ```
