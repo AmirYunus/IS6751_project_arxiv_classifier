@@ -22,3 +22,11 @@ textblob==0.18.0.post0
 
 # Word Cloud
 wordcloud==1.9.3
+
+# Transformers
+transformers==4.45.2
+
+# PyTorch for Mac
+torch==2.4.0; sys_platform == 'darwin'
+torchvision==0.19.0; sys_platform == 'darwin'
+torchaudio==2.4.0; sys_platform == 'darwin'
