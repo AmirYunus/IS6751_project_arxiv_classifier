@@ -1,9 +1,49 @@
 # Setup Instructions
 
 1. Install Git LFS (Large File Storage):
+
+   a. For Mac:
+   
+   <details>
+   <summary>i. Install Homebrew:</summary>
+
+   ```
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+        
+   After installing Homebrew, run the following commands.
+   ```
+   # Replace <username> with your actual username.
+   
+   echo >> /Users/<username>/.zprofile
+   ```
+        
+   ```
+   # Replace <username> with your actual username.
+   
+   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/<username>/.zprofile
+   ```
+        
+   ```
+   eval "$(/opt/homebrew/bin/brew shellenv)"
+   ```
+   </details>
+
+   <details>
+   <summary>ii. Install Git LFS using Homebrew:</summary>
+
+   ```
+   brew install git-lfs
+   ```
+   </details>
+
+   <details>
+   <summary>iii. Set up Git LFS:</summary>
+
    ```
    git lfs install
    ```
+   </details>
 
 2. Create a Conda environment:
    ```

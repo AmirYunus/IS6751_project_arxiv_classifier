@@ -3,8 +3,14 @@ import pandas as pd
 
 # Natural Language Processing
 import re
-import unicodedata
 import spacy
+from nltk.corpus import stopwords as __stopwords
+from nltk.tokenize import word_tokenize
+
+# Download NLTK stopwords
+import nltk
+nltk.download('stopwords', quiet=True)
+nltk.download('punkt', quiet=True)
 
 def categories(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -151,10 +157,8 @@ def stopwords(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The DataFrame with stopwords removed from text data.
     """
-    from nltk.corpus import stopwords
-    from nltk.tokenize import word_tokenize
-    
-    stop_words = set(stopwords.words('english'))
+
+    stop_words = set(__stopwords.words('english'))
     text_columns = ['title', 'summary', 'comment', 'authors']
     
     for column in text_columns:
