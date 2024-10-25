@@ -30,3 +30,6 @@ transformers==4.45.2
 torch==2.4.0; sys_platform == 'darwin'
 torchvision==0.19.0; sys_platform == 'darwin'
 torchaudio==2.4.0; sys_platform == 'darwin'
+
+# Progress bar
+tqdm==4.66.5

@@ -1,9 +1,10 @@
 # Data manipulation and analysis
 import pandas as pd
+import numpy as np
 
 # Natural Language Processing
 import spacy
-from transformers import AutoTokenizer, AutoModel
+from transformers import BertTokenizer, BertModel
 
 # PyTorch for deep learning
 import torch
@@ -15,192 +16,202 @@ from textblob import TextBlob
 # Operating system interfaces
 import os
 
-def tokenize(df: pd.DataFrame) -> pd.DataFrame:
+# Progress bar
+from tqdm import tqdm
+
+def __get_device() -> torch.device:
     """
-    Tokenize the text data in 'title', 'summary', 'comment', and 'authors' columns of the DataFrame.
+    Determine the best available device for computation.
+    Returns CUDA if available, else MPS if available, else CPU.
+    """
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        return torch.device("mps")
+    else:
+        return torch.device("cpu")
+
+def __load_bert_model(model_name: str):
+    tokenizer = BertTokenizer.from_pretrained(model_name)
+    model = BertModel.from_pretrained(model_name)
+    return tokenizer, model
+
+def __process_text_column(column: pd.Series, process_func: callable, batch_size: int) -> pd.Series:
+    """
+    Process a text column using the given function in batches.
 
     Args:
-        df (pd.DataFrame): The DataFrame containing 'title', 'summary', 'comment', and 'authors' columns.
+        column (pd.Series): The column to process.
+        process_func (callable): The function to apply to each text.
+        batch_size (int): The number of samples to process at once.
 
     Returns:
-        pd.DataFrame: The DataFrame with tokenized text in specified columns.
+        pd.Series: The processed column.
     """
-    nlp = spacy.load('en_core_web_sm')
-    text_columns = ['title', 'summary', 'comment', 'authors']
+    processed = []
+    for i in tqdm(range(0, len(column), batch_size), desc="Processing text column"):
+        batch = column.iloc[i:i+batch_size]
+        processed.extend([process_func(text) if isinstance(text, str) else text for text in batch])
+    return pd.Series(processed)
 
-    def tokenize_text(text):
-        if isinstance(text, str):
-            return [token.text for token in nlp(text)]
-        return text
+def __bert_lemmatize(text: str, tokenizer: BertTokenizer, model: BertModel, device: torch.device) -> str:
+    if not isinstance(text, str):
+        text = str(text)
+    
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
+    with torch.no_grad():
+        model(**inputs)
+    
+    lemmatized_tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+    lemmatized_text = ' '.join([token for token in lemmatized_tokens if token not in ['[CLS]', '[SEP]', '[PAD]']])
+    
+    return lemmatized_text
 
-    for column in text_columns:
-        df[column] = df[column].apply(tokenize_text)
+def __lemmatize_column(column: pd.Series, tokenizer: BertTokenizer, model: BertModel, device: torch.device, batch_size: int) -> pd.Series:
+    tokenized = __process_text_column(column, tokenizer.tokenize, batch_size)
+    return __process_text_column(tokenized, lambda text: __bert_lemmatize(text, tokenizer, model, device), batch_size)
 
-    return df
+def __get_embeddings(texts: pd.Series, tokenizer: BertTokenizer, model: BertModel, device: torch.device) -> np.ndarray:
+    inputs = tokenizer(texts.tolist(), return_tensors="pt", truncation=True, padding=True, max_length=512)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
+    
+    with torch.no_grad():
+        outputs = model(**inputs)
+    return outputs.last_hidden_state[:, 0, :].cpu().numpy()
 
+def __vectorize_column(df: pd.DataFrame, column: str, tokenizer: BertTokenizer, model: BertModel, device: torch.device, batch_size: int) -> pd.DataFrame:
+    df[column] = df[column].astype(str)
+    embeddings = []
+    for i in tqdm(range(0, len(df), batch_size), desc=f"Vectorizing {column}"):
+        batch = df[column].iloc[i:i+batch_size]
+        embeddings.extend(__get_embeddings(batch, tokenizer, model, device))
+    embedding_df = pd.DataFrame(embeddings, columns=[f'{column}_emb_{i}' for i in range(embeddings[0].shape[0])])
+    return pd.concat([df, embedding_df], axis=1)
 
-def lemmatize(df: pd.DataFrame) -> pd.DataFrame:
+def lemmatize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
     """
-    Lemmatize the text data in 'title', 'summary', 'comment', and 'authors' columns of the DataFrame.
+    Lemmatize the text data in specified columns of the DataFrame using BERT lemmatizer.
 
     Args:
-        df (pd.DataFrame): The DataFrame containing 'title', 'summary', 'comment', and 'authors' columns.
+        df (pd.DataFrame): The DataFrame containing text columns to lemmatize.
+        model_name (str): The name of the BERT model to use for lemmatization. Default is 'bert-base-uncased'.
+        batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:
         pd.DataFrame: The DataFrame with lemmatized text in specified columns.
     """
-    nlp = spacy.load('en_core_web_sm')
+    tokenizer, model = __load_bert_model(model_name)
+    device = __get_device()
+    model = model.to(device)
+    
     text_columns = ['title', 'summary', 'comment', 'authors']
 
-    for column in text_columns:
-        df[column] = df[column].apply(lambda text: ' '.join([token.lemma_ for token in nlp(text)]) if isinstance(text, str) else text)
+    for column in tqdm(text_columns, desc="Lemmatizing columns"):
+        df[column] = __lemmatize_column(df[column], tokenizer, model, device, batch_size)
 
     return df
 
-
-def vectorize(df: pd.DataFrame, model_name: str = 'bert-base-uncased') -> pd.DataFrame:
+def vectorize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
     """
-    Vectorize the text data in the 'title', 'summary', 'comment', and 'authors' columns of the DataFrame using a transformer model.
+    Vectorize the text data in specified columns of the DataFrame using a BERT model.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns to be vectorized.
-        model_name (str): The name of the transformer model to use. Default is 'bert-base-uncased'.
+        model_name (str): The name of the BERT model to use. Default is 'bert-base-uncased'.
+        batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:
         pd.DataFrame: The DataFrame with the vectorized text added as new columns for each input column.
     """
-
-    # Initialize the tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModel.from_pretrained(model_name)
+    tokenizer, model = __load_bert_model(model_name)
+    device = __get_device()
+    model = model.to(device)
 
     columns_to_vectorize = ['title', 'summary', 'comment', 'authors']
 
-    for column in columns_to_vectorize:
-        # Ensure the column contains string data
-        df[column] = df[column].astype(str)
-
-        # Tokenize the text and get the model output
-        inputs = tokenizer(df[column].tolist(), return_tensors="pt", truncation=True, padding=True, max_length=512)
-        with torch.no_grad():
-            outputs = model(**inputs)
-        
-        # Use the [CLS] token embedding as the sentence representation
-        embeddings = outputs.last_hidden_state[:, 0, :].numpy()
-
-        # Convert the embeddings to a DataFrame
-        embedding_df = pd.DataFrame(embeddings, columns=[f'{column}_emb_{i}' for i in range(embeddings.shape[1])])
-
-        # Concatenate the original DataFrame with the embedding DataFrame
-        df = pd.concat([df, embedding_df], axis=1)
+    for column in tqdm(columns_to_vectorize, desc="Vectorizing columns"):
+        df = __vectorize_column(df, column, tokenizer, model, device, batch_size)
 
     return df
 
-
-def word_count(df: pd.DataFrame) -> pd.DataFrame:
+def word_count(df: pd.DataFrame, batch_size: int = 1000) -> pd.DataFrame:
     """
     Count the number of words in the 'title', 'summary', 'comment', and 'authors' columns
     and add these counts as new columns to the DataFrame.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns.
+        batch_size (int): The number of samples to process at once. Default is 1000.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for word counts.
     """
     columns_to_count = ['title', 'summary', 'comment', 'authors']
 
-    for column in columns_to_count:
-        df[f'{column}_word_count'] = df[column].apply(lambda x: len(str(x).split()) if isinstance(x, str) else 0)
+    for column in tqdm(columns_to_count, desc="Counting words"):
+        word_counts = []
+        for i in tqdm(range(0, len(df), batch_size), desc=f"Processing {column}", leave=False):
+            batch = df[column].iloc[i:i+batch_size]
+            word_counts.extend([len(str(x).split()) if isinstance(x, str) else 0 for x in batch])
+        df[f'{column}_word_count'] = word_counts
 
     return df
 
-def named_entity_recognition(df: pd.DataFrame) -> pd.DataFrame:
+def named_entity_recognition(df: pd.DataFrame, batch_size: int = 100) -> pd.DataFrame:
     """
     Count the number of named entities by category in the 'title', 'summary', 'comment', and 'authors' columns
     and add these counts as new columns to the DataFrame.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns.
+        batch_size (int): The number of samples to process at once. Default is 100.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for named entity counts by category.
     """
 
-    # Load the English NER model
     nlp = spacy.load("en_core_web_sm")
-
     columns_to_process = ['title', 'summary', 'comment', 'authors']
 
-    for column in columns_to_process:
-        # Ensure the column contains string data
+    for column in tqdm(columns_to_process, desc="Processing NER"):
         df[column] = df[column].astype(str)
-
-        # Process each text and count entities
         entity_counts = []
-        for text in df[column]:
-            doc = nlp(text)
-            counts = {ent_type: 0 for ent_type in nlp.pipe_labels['ner']}
-            for ent in doc.ents:
-                counts[ent.label_] += 1
-            entity_counts.append(counts)
+        for i in tqdm(range(0, len(df), batch_size), desc=f"Processing {column}", leave=False):
+            batch = df[column].iloc[i:i+batch_size]
+            docs = list(nlp.pipe(batch))
+            batch_counts = [{ent.label_: 1 for ent in doc.ents} for doc in docs]
+            entity_counts.extend(batch_counts)
 
-        # Add new columns for each entity category
         for ent_type in nlp.pipe_labels['ner']:
-            df[f'{column}_ner_{ent_type}_count'] = [count[ent_type] for count in entity_counts]
+            df[f'{column}_ner_{ent_type}_count'] = [count.get(ent_type, 0) for count in entity_counts]
 
     return df
 
-def sentiment_analysis(df: pd.DataFrame) -> pd.DataFrame:
+def sentiment_analysis(df: pd.DataFrame, batch_size: int = 1000) -> pd.DataFrame:
     """
     Perform sentiment analysis on the 'title', 'summary', 'comment', and 'authors' columns
     and add the sentiment scores as new columns to the DataFrame.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns.
+        batch_size (int): The number of samples to process at once. Default is 1000.
 
     Returns:
         pd.DataFrame: The DataFrame with additional columns for sentiment scores.
     """
 
-    # Disable tokenizers parallelism to avoid deadlocks
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
     columns_to_analyze = ['title', 'summary', 'comment', 'authors']
 
-    for column in columns_to_analyze:
-        # Ensure the column contains string data
+    for column in tqdm(columns_to_analyze, desc="Analyzing sentiment"):
         df[column] = df[column].astype(str)
-
-        # Function to calculate sentiment
-        def get_sentiment(text):
-            return TextBlob(text).sentiment.polarity
-
-        # Apply the function to calculate sentiment
-        df[f'{column}_sentiment'] = df[column].apply(get_sentiment)
-
-    return df
-
-def text_complexity(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculate the Automated Readability Index (ARI) for the 'title', 'summary', 'comment', and 'authors' columns
-    and add the ARI scores as new columns to the DataFrame.
-
-    Args:
-        df (pd.DataFrame): The DataFrame containing the text columns.
-
-    Returns:
-        pd.DataFrame: The DataFrame with additional columns for ARI scores.
-    """
-
-    columns_to_analyze = ['title', 'summary', 'comment', 'authors']
-
-    for column in columns_to_analyze:
-        # Ensure the column contains string data
-        df[column] = df[column].astype(str)
-
-        # Apply the function to calculate ARI
-        df[f'{column}_ari'] = df[column].apply(__calculate_ari)
+        sentiments = []
+        for i in tqdm(range(0, len(df), batch_size), desc=f"Processing {column}", leave=False):
+            batch = df[column].iloc[i:i+batch_size]
+            sentiments.extend(batch.apply(lambda text: TextBlob(text).sentiment.polarity))
+        df[f'{column}_sentiment'] = sentiments
 
     return df
 
@@ -214,21 +225,39 @@ def __calculate_ari(text):
     Returns:
         float: The ARI score for the text.
     """
-    # Count characters (excluding spaces)
     characters = len(re.findall(r'\S', text))
-    
-    # Count words
     words = len(text.split())
+    sentences = len(re.findall(r'\w+[.!?]', text)) or 1
     
-    # Count sentences (simple approximation)
-    sentences = len(re.findall(r'\w+[.!?]', text)) or 1  # Ensure at least 1 sentence
-    
-    # Calculate ARI
     if words == 0:
         return 0
     ari = 4.71 * (characters / words) + 0.5 * (words / sentences) - 21.43
-    return max(1, min(ari, 14))  # Clamp value between 1 and 14
+    return max(1, min(ari, 14))
 
+def text_complexity(df: pd.DataFrame, batch_size: int = 1000) -> pd.DataFrame:
+    """
+    Calculate the Automated Readability Index (ARI) for the 'title', 'summary', 'comment', and 'authors' columns
+    and add the ARI scores as new columns to the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The DataFrame containing the text columns.
+        batch_size (int): The number of samples to process at once. Default is 1000.
+
+    Returns:
+        pd.DataFrame: The DataFrame with additional columns for ARI scores.
+    """
+
+    columns_to_analyze = ['title', 'summary', 'comment', 'authors']
+
+    for column in tqdm(columns_to_analyze, desc="Calculating text complexity"):
+        df[column] = df[column].astype(str)
+        ari_scores = []
+        for i in tqdm(range(0, len(df), batch_size), desc=f"Processing {column}", leave=False):
+            batch = df[column].iloc[i:i+batch_size]
+            ari_scores.extend(batch.apply(__calculate_ari))
+        df[f'{column}_ari'] = ari_scores
+
+    return df
 
 def prepare(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -241,21 +270,13 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The DataFrame with only relevant columns and 'category' and 'split' as the last two columns.
     """
-    # Columns to exclude
     exclude_columns = ['title', 'summary', 'comment', 'authors']
-    
-    # Get all column names except the excluded ones
     keep_columns = [col for col in df.columns if col not in exclude_columns]
     
-    # Remove 'category' and 'split' from keep_columns if they exist
-    if 'category' in keep_columns:
-        keep_columns.remove('category')
-    if 'split' in keep_columns:
-        keep_columns.remove('split')
+    for col in ['category', 'split']:
+        if col in keep_columns:
+            keep_columns.remove(col)
     
-    # Add 'category' and 'split' to the end of keep_columns
     keep_columns.extend(['category', 'split'])
     
-    # Return the DataFrame with only the kept columns
     return df[keep_columns]
-
