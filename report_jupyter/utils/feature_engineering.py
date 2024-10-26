@@ -19,6 +19,9 @@ import os
 # Progress bar
 from tqdm import tqdm
 
+# Scaling
+from sklearn.preprocessing import MinMaxScaler
+
 def __get_device() -> torch.device:
     """
     Determine the best available device for computation.
@@ -280,3 +283,28 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
     keep_columns.extend(['category', 'split'])
     
     return df[keep_columns]
+
+def normalize_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalize the numerical columns of the DataFrame using Min-Max scaling.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+
+    Returns:
+        pd.DataFrame: The DataFrame with normalized numerical columns.
+    """
+    # Identify numerical columns
+    numerical_columns = df.select_dtypes(include=['int64', 'float64']).columns
+
+    # Exclude 'category' and 'split' columns if they are present
+    columns_to_normalize = [col for col in numerical_columns if col not in ['category', 'split']]
+
+    # Create a MinMaxScaler
+    scaler = MinMaxScaler()
+
+    # Normalize the selected columns
+    df[columns_to_normalize] = scaler.fit_transform(df[columns_to_normalize])
+
+    return df, scaler
+
