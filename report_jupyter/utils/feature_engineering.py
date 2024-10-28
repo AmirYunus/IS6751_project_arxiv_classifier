@@ -93,13 +93,13 @@ def __vectorize_column(df: pd.DataFrame, column: str, tokenizer: BertTokenizer, 
     embedding_df = pd.DataFrame(embeddings, columns=[f'{column}_emb_{i}' for i in range(embeddings[0].shape[0])])
     return pd.concat([df, embedding_df], axis=1)
 
-def lemmatize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
+def lemmatize(df: pd.DataFrame, model_name: str = 'bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
     """
     Lemmatize the text data in specified columns of the DataFrame using BERT lemmatizer.
 
     Args:
         df (pd.DataFrame): The DataFrame containing text columns to lemmatize.
-        model_name (str): The name of the BERT model to use for lemmatization. Default is 'bert-base-uncased'.
+        model_name (str): The name of the BERT model to use for lemmatization. Default is 'bert-large-uncased-whole-word-masking-squad2'.
         batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:
@@ -116,13 +116,13 @@ def lemmatize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_siz
 
     return df
 
-def vectorize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
+def vectorize(df: pd.DataFrame, model_name: str = 'bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
     """
     Vectorize the text data in specified columns of the DataFrame using a BERT model.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns to be vectorized.
-        model_name (str): The name of the BERT model to use. Default is 'bert-base-uncased'.
+        model_name (str): The name of the BERT model to use. Default is 'bert-large-uncased-whole-word-masking-squad2'.
         batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:

@@ -33,3 +33,6 @@ torchaudio==2.4.0; sys_platform == 'darwin'
 
 # Progress bar
 tqdm==4.66.5
+
+# GIF animation
+imageio==2.36.0
