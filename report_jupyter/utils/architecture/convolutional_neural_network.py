@@ -44,23 +44,17 @@ class ConvolutionalNeuralNetwork(nn.Module):
         self.side_length = int(np.ceil(np.sqrt(input_dim)))
         self.pad_size = self.side_length * self.side_length - input_dim
         
-        # Convolutional layers
+        # Convolutional layers with reduced complexity
         self.conv_layers = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.Conv2d(1, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(0.3),
+            
+            nn.Conv2d(16, 32, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(32),
-            nn.MaxPool2d(2),
-            nn.Dropout2d(0.3),
-            
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(64),
-            nn.MaxPool2d(2),
-            nn.Dropout2d(0.3),
-            
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(128),
             nn.MaxPool2d(2),
             nn.Dropout2d(0.3)
         )
@@ -68,15 +62,15 @@ class ConvolutionalNeuralNetwork(nn.Module):
         # Calculate size of flattened features after convolutions
         self.flat_features = self._get_flat_features()
         
-        # Fully connected layers
+        # Fully connected layers with reduced complexity
         self.fc_layers = nn.Sequential(
-            nn.Linear(self.flat_features, 256),
+            nn.Linear(self.flat_features, 128),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(256, 64),
+            nn.Linear(128, 32),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(64, 8),
+            nn.Linear(32, 8),
             nn.Softmax(dim=1)
         )
         
@@ -148,18 +142,18 @@ class ConvolutionalNeuralNetwork(nn.Module):
         # Initialize weighted loss criterion
         self.criterion = nn.CrossEntropyLoss(weight=class_weights)
         
-        # Convert numpy arrays to tensors
-        try:
-            X = torch.FloatTensor(X_train.astype(np.float32)).to(self.device)
-            y = torch.LongTensor(y_train_numeric).to(self.device)
-            X_val_tensor = torch.FloatTensor(X_val.astype(np.float32)).to(self.device)
-            y_val_tensor = torch.LongTensor(y_val_numeric).to(self.device)
-        except ValueError as e:
-            raise ValueError("Input features must be numeric. Check that X_train and X_val contain only numbers.") from e
+        # Convert numpy arrays to tensors in batches
+        train_dataset = TensorDataset(
+            torch.FloatTensor(X_train.astype(np.float32)),
+            torch.LongTensor(y_train_numeric)
+        )
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
         
-        # Create dataset and dataloader
-        dataset = TensorDataset(X, y)
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        val_dataset = TensorDataset(
+            torch.FloatTensor(X_val.astype(np.float32)),
+            torch.LongTensor(y_val_numeric)
+        )
+        val_loader = DataLoader(val_dataset, batch_size=batch_size)
         
         train_losses = []
         val_losses = []
@@ -178,7 +172,9 @@ class ConvolutionalNeuralNetwork(nn.Module):
             correct_train = 0
             total_train = 0
             
-            for batch_X, batch_y in dataloader:
+            for batch_X, batch_y in train_loader:
+                batch_X, batch_y = batch_X.to(self.device), batch_y.to(self.device)
+                
                 # Forward pass
                 outputs = self(batch_X)
                 loss = self.criterion(outputs, batch_y)
@@ -199,26 +195,34 @@ class ConvolutionalNeuralNetwork(nn.Module):
                 epoch_loss += loss.item()
             
             # Average training loss and accuracy for the epoch
-            avg_train_loss = epoch_loss / len(dataloader)
+            avg_train_loss = epoch_loss / len(train_loader)
             train_accuracy = 100 * correct_train / total_train
             train_losses.append(avg_train_loss)
             train_accuracies.append(train_accuracy)
             
             # Validation phase
             self.eval()
+            val_loss = 0.0
+            correct_val = 0
+            total_val = 0
+            
             with torch.no_grad():
-                val_outputs = self(X_val_tensor)
-                val_loss = self.criterion(val_outputs, y_val_tensor)
-                
-                # Calculate validation accuracy
-                _, predicted = torch.max(val_outputs.data, 1)
-                val_accuracy = 100 * (predicted == y_val_tensor).sum().item() / len(y_val_tensor)
-                
-                val_losses.append(val_loss.item())
-                val_accuracies.append(val_accuracy)
+                for batch_X, batch_y in val_loader:
+                    batch_X, batch_y = batch_X.to(self.device), batch_y.to(self.device)
+                    outputs = self(batch_X)
+                    val_loss += self.criterion(outputs, batch_y).item()
+                    
+                    _, predicted = torch.max(outputs.data, 1)
+                    total_val += batch_y.size(0)
+                    correct_val += (predicted == batch_y).sum().item()
+            
+            avg_val_loss = val_loss / len(val_loader)
+            val_accuracy = 100 * correct_val / total_val
+            val_losses.append(avg_val_loss)
+            val_accuracies.append(val_accuracy)
             
             # Update learning rate based on validation loss
-            self.scheduler.step(val_loss)
+            self.scheduler.step(avg_val_loss)
             
             # Clear output before showing new plot
             clear_output(wait=True)
@@ -263,7 +267,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
             # Update progress bar description with epoch metrics
             progress_bar.set_postfix({
                 'train_loss': f'{avg_train_loss:.4f}',
-                'val_loss': f'{val_loss.item():.4f}',
+                'val_loss': f'{avg_val_loss:.4f}',
                 'train_acc': f'{train_accuracy:.2f}%',
                 'val_acc': f'{val_accuracy:.2f}%'
             })
@@ -286,12 +290,20 @@ class ConvolutionalNeuralNetwork(nn.Module):
             np.ndarray: Class predictions as original category labels
         """
         self.eval()
+        predictions = []
+        
+        # Process in batches
+        dataset = TensorDataset(torch.FloatTensor(X))
+        dataloader = DataLoader(dataset, batch_size=32)
+        
         with torch.no_grad():
-            X_tensor = torch.FloatTensor(X).to(self.device)
-            probabilities = self(X_tensor)
-            predictions = torch.argmax(probabilities, dim=1).cpu().numpy()
-            # Convert numeric predictions back to original labels
-            predictions = np.array([self.idx_to_label[idx] for idx in predictions])
+            for batch_X, in dataloader:
+                batch_X = batch_X.to(self.device)
+                batch_probs = self(batch_X)
+                batch_preds = torch.argmax(batch_probs, dim=1).cpu().numpy()
+                predictions.extend([self.idx_to_label[idx] for idx in batch_preds])
+        
+        predictions = np.array(predictions)
             
         if display_metrics and y_test is not None:
             print("\nClassification Report:")
@@ -310,7 +322,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
             plt.show()
             plt.close()
             
-        return None
+        return predictions
     
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
@@ -323,7 +335,16 @@ class ConvolutionalNeuralNetwork(nn.Module):
             np.ndarray: Probability predictions for each class (shape: n_samples x n_classes)
         """
         self.eval()
+        probabilities = []
+        
+        # Process in batches
+        dataset = TensorDataset(torch.FloatTensor(X))
+        dataloader = DataLoader(dataset, batch_size=32)
+        
         with torch.no_grad():
-            X_tensor = torch.FloatTensor(X).to(self.device)
-            probabilities = self(X_tensor)
-        return probabilities.cpu().numpy()
+            for batch_X, in dataloader:
+                batch_X = batch_X.to(self.device)
+                batch_probs = self(batch_X)
+                probabilities.append(batch_probs.cpu().numpy())
+                
+        return np.vstack(probabilities)

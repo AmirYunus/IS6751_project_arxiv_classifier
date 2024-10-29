@@ -48,9 +48,15 @@ class AutoencoderNeuralNetwork(nn.Module):
         self.side_length = int(np.ceil(np.sqrt(input_dim)))
         self.pad_size = self.side_length * self.side_length - input_dim
         
-        # Encoder layers
+        # Encoder layers with smaller feature maps
         self.encoder = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, padding=1),
+            nn.Conv2d(1, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            nn.MaxPool2d(2),
+            nn.Dropout2d(0.3),
+            
+            nn.Conv2d(16, 32, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
@@ -60,53 +66,47 @@ class AutoencoderNeuralNetwork(nn.Module):
             nn.ReLU(),
             nn.BatchNorm2d(64),
             nn.MaxPool2d(2),
-            nn.Dropout2d(0.3),
-            
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(2),
             nn.Dropout2d(0.3)
         )
         
         # Calculate size of flattened features after convolutions
         self.flat_features = self._get_flat_features()
         
-        # Latent space
+        # Latent space with reduced dimensions
         self.fc_encoder = nn.Sequential(
-            nn.Linear(self.flat_features, 256),
+            nn.Linear(self.flat_features, 128),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(256, 64),
+            nn.Linear(128, 32),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(64, latent_dim)
+            nn.Linear(32, latent_dim)
         )
         
-        # Decoder layers
+        # Decoder layers with reduced dimensions
         self.fc_decoder = nn.Sequential(
-            nn.Linear(latent_dim, 64),
+            nn.Linear(latent_dim, 32),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(64, 256),
+            nn.Linear(32, 128),
             nn.ReLU(),
             nn.Dropout(0.3),
-            nn.Linear(256, self.flat_features)
+            nn.Linear(128, self.flat_features)
         )
         
-        # Calculate decoder conv output padding
+        # Decoder conv layers with reduced feature maps
         self.decoder_conv = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.ReLU(),
-            nn.BatchNorm2d(64),
-            nn.Dropout2d(0.3),
-            
             nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.ReLU(),
             nn.BatchNorm2d(32),
             nn.Dropout2d(0.3),
             
-            nn.ConvTranspose2d(32, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.BatchNorm2d(16),
+            nn.Dropout2d(0.3),
+            
+            nn.ConvTranspose2d(16, 1, kernel_size=3, stride=2, padding=1, output_padding=1),
             nn.Sigmoid()
         )
         
@@ -131,31 +131,47 @@ class AutoencoderNeuralNetwork(nn.Module):
         return int(np.prod(x.size()[1:]))
         
     def encode(self, x):
-        # Pad input if necessary
-        if self.pad_size > 0:
-            x = torch.nn.functional.pad(x, (0, self.pad_size))
+        # Process data in smaller batches
+        batch_size = 32
+        dataset = TensorDataset(x)
+        dataloader = DataLoader(dataset, batch_size=batch_size)
         
-        # Reshape to square image format
-        batch_size = x.size(0)
-        x = x.view(batch_size, 1, self.side_length, self.side_length)
-        
-        # Forward pass through encoder
-        x = self.encoder(x)
-        x = x.view(batch_size, -1)
-        return self.fc_encoder(x)
+        encoded_batches = []
+        for batch_x, in dataloader:
+            # Pad input if necessary
+            if self.pad_size > 0:
+                batch_x = torch.nn.functional.pad(batch_x, (0, self.pad_size))
+            
+            # Reshape to square image format
+            batch_x = batch_x.view(-1, 1, self.side_length, self.side_length)
+            
+            # Forward pass through encoder
+            batch_x = self.encoder(batch_x)
+            batch_x = batch_x.view(batch_x.size(0), -1)
+            encoded_batches.append(self.fc_encoder(batch_x))
+            
+        return torch.cat(encoded_batches, dim=0)
         
     def decode(self, z):
-        # Decode from latent space
-        x = self.fc_decoder(z)
-        batch_size = x.size(0)
-        x = x.view(batch_size, 128, self.side_length//(2**3), self.side_length//(2**3))
-        x = self.decoder_conv(x)
-        x = x.view(batch_size, -1)
+        # Process data in smaller batches
+        batch_size = 32
+        dataset = TensorDataset(z)
+        dataloader = DataLoader(dataset, batch_size=batch_size)
         
-        # Remove padding if necessary
-        if self.pad_size > 0:
-            x = x[:, :-self.pad_size]
-        return x
+        decoded_batches = []
+        for batch_z, in dataloader:
+            # Decode from latent space
+            batch_x = self.fc_decoder(batch_z)
+            batch_x = batch_x.view(-1, 64, self.side_length//(2**3), self.side_length//(2**3))
+            batch_x = self.decoder_conv(batch_x)
+            batch_x = batch_x.view(batch_x.size(0), -1)
+            
+            # Remove padding if necessary
+            if self.pad_size > 0:
+                batch_x = batch_x[:, :-self.pad_size]
+            decoded_batches.append(batch_x)
+            
+        return torch.cat(decoded_batches, dim=0)
         
     def forward(self, x):
         z = self.encode(x)
@@ -164,8 +180,8 @@ class AutoencoderNeuralNetwork(nn.Module):
         return reconstruction, classification
         
     def fit(self, X_train: np.ndarray, y_train: np.ndarray,
-           X_val: np.ndarray, y_val: np.ndarray,
-           batch_size: int = 32, epochs: int = 100) -> tuple[list[float], list[float]]:
+            X_val: np.ndarray, y_val: np.ndarray,
+            batch_size: int = 32, epochs: int = 100) -> tuple[list[float], list[float]]:
         """
         Train the autoencoder model.
         
@@ -268,27 +284,41 @@ class AutoencoderNeuralNetwork(nn.Module):
             # Validation phase
             self.eval()
             with torch.no_grad():
-                recon_val, val_outputs = self(X_val_tensor)
+                # Process validation data in batches
+                val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
+                val_dataloader = DataLoader(val_dataset, batch_size=batch_size)
                 
-                # Ensure reconstruction has same size as input
-                if recon_val.size(1) > X_val_tensor.size(1):
-                    recon_val = recon_val[:, :X_val_tensor.size(1)]
-                elif recon_val.size(1) < X_val_tensor.size(1):
-                    recon_val = torch.nn.functional.pad(recon_val, (0, X_val_tensor.size(1) - recon_val.size(1)))
+                val_loss = 0.0
+                correct_val = 0
+                total_val = 0
                 
-                recon_loss = self.recon_criterion(recon_val, X_val_tensor)
-                class_loss = self.class_criterion(val_outputs, y_val_tensor)
-                val_loss = recon_loss + class_loss
+                for batch_X_val, batch_y_val in val_dataloader:
+                    recon_val, val_outputs = self(batch_X_val)
+                    
+                    # Ensure reconstruction has same size as input
+                    if recon_val.size(1) > batch_X_val.size(1):
+                        recon_val = recon_val[:, :batch_X_val.size(1)]
+                    elif recon_val.size(1) < batch_X_val.size(1):
+                        recon_val = torch.nn.functional.pad(recon_val, (0, batch_X_val.size(1) - recon_val.size(1)))
+                    
+                    recon_loss = self.recon_criterion(recon_val, batch_X_val)
+                    class_loss = self.class_criterion(val_outputs, batch_y_val)
+                    batch_val_loss = recon_loss + class_loss
+                    val_loss += batch_val_loss.item()
+                    
+                    # Calculate validation accuracy
+                    _, predicted = torch.max(val_outputs.data, 1)
+                    total_val += batch_y_val.size(0)
+                    correct_val += (predicted == batch_y_val).sum().item()
                 
-                # Calculate validation accuracy
-                _, predicted = torch.max(val_outputs.data, 1)
-                val_accuracy = 100 * (predicted == y_val_tensor).sum().item() / len(y_val_tensor)
+                avg_val_loss = val_loss / len(val_dataloader)
+                val_accuracy = 100 * correct_val / total_val
                 
-                val_losses.append(val_loss.item())
+                val_losses.append(avg_val_loss)
                 val_accuracies.append(val_accuracy)
             
             # Update learning rate based on validation loss
-            self.scheduler.step(val_loss)
+            self.scheduler.step(avg_val_loss)
             
             # Clear output before showing new plot
             clear_output(wait=True)
@@ -333,7 +363,7 @@ class AutoencoderNeuralNetwork(nn.Module):
             # Update progress bar description with epoch metrics
             progress_bar.set_postfix({
                 'train_loss': f'{avg_train_loss:.4f}',
-                'val_loss': f'{val_loss.item():.4f}',
+                'val_loss': f'{avg_val_loss:.4f}',
                 'train_acc': f'{train_accuracy:.2f}%',
                 'val_acc': f'{val_accuracy:.2f}%'
             })
@@ -357,9 +387,19 @@ class AutoencoderNeuralNetwork(nn.Module):
         """
         self.eval()
         with torch.no_grad():
+            # Process test data in batches
+            batch_size = 32
             X_tensor = torch.FloatTensor(X).to(self.device)
-            _, probabilities = self(X_tensor)
-            predictions = torch.argmax(probabilities, dim=1).cpu().numpy()
+            test_dataset = TensorDataset(X_tensor)
+            test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
+            
+            all_predictions = []
+            for batch_X, in test_dataloader:
+                _, probabilities = self(batch_X)
+                predictions = torch.argmax(probabilities, dim=1).cpu().numpy()
+                all_predictions.append(predictions)
+            
+            predictions = np.concatenate(all_predictions)
             # Convert numeric predictions back to original labels
             predictions = np.array([self.idx_to_label[idx] for idx in predictions])
             
@@ -380,7 +420,7 @@ class AutoencoderNeuralNetwork(nn.Module):
             plt.show()
             plt.close()
             
-        return None
+        return predictions
     
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """
@@ -394,6 +434,15 @@ class AutoencoderNeuralNetwork(nn.Module):
         """
         self.eval()
         with torch.no_grad():
+            # Process test data in batches
+            batch_size = 32
             X_tensor = torch.FloatTensor(X).to(self.device)
-            _, probabilities = self(X_tensor)
-        return probabilities.cpu().numpy()
+            test_dataset = TensorDataset(X_tensor)
+            test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
+            
+            all_probabilities = []
+            for batch_X, in test_dataloader:
+                _, probabilities = self(batch_X)
+                all_probabilities.append(probabilities.cpu().numpy())
+            
+        return np.concatenate(all_probabilities, axis=0)
