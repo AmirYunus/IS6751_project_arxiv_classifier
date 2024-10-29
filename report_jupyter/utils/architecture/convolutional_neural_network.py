@@ -24,13 +24,14 @@ if torch.cuda.is_available():
     torch.backends.cudnn.benchmark = False
 
 class ConvolutionalNeuralNetwork(nn.Module):
-    def __init__(self, input_dim: int, learning_rate: float = 1e-3):
+    def __init__(self, input_dim: int, learning_rate: float = 1e-3, num_epochs: int = 100):
         """
         Initialize convolutional neural network model.
         
         Args:
             input_dim (int): Number of input features
             learning_rate (float): Learning rate for optimization
+            num_epochs (int): Number of training epochs. Default is 100.
         """
         super().__init__()
         
@@ -82,6 +83,8 @@ class ConvolutionalNeuralNetwork(nn.Module):
         self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='min', 
                                                             factor=0.5, patience=1)
         
+        self.num_epochs = num_epochs
+        
     def _get_flat_features(self):
         # Helper function to calculate flattened size
         x = torch.randn(1, 1, self.side_length, self.side_length)
@@ -109,7 +112,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         
     def fit(self, X_train: np.ndarray, y_train: np.ndarray,
            X_val: np.ndarray, y_val: np.ndarray,
-           batch_size: int = 32, epochs: int = 100) -> tuple[list[float], list[float]]:
+           batch_size: int = 32, epochs: int = None) -> tuple[list[float], list[float]]:
         """
         Train the neural network model.
         
@@ -162,6 +165,9 @@ class ConvolutionalNeuralNetwork(nn.Module):
         
         # For saving animation frames
         frames = []
+        
+        # Use self.num_epochs if epochs is not provided
+        epochs = epochs if epochs is not None else self.num_epochs
         
         # Training loop with progress bar
         progress_bar = tqdm(range(epochs), desc="Training")

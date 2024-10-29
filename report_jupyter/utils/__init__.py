@@ -57,7 +57,7 @@ def save_data(df: pd.DataFrame, file_path: str, file_type: str = 'pickle') -> No
     
     print(f"Data saved successfully to {file_path}")
 
-def split_data(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+def split_data(df: pd.DataFrame, balance_data: bool = False) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Split a DataFrame into train, validation and test sets based on values in 'split' column.
     Separates features (X) and target (y) for each split.
@@ -65,6 +65,7 @@ def split_data(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np
     Args:
         df (pd.DataFrame): The DataFrame to split. Must contain a 'split' column with values
                           'train', 'val' or 'test', and a 'target' column for the labels
+        balance_data (bool): Whether to balance the number of samples per category. Default is False.
 
     Returns:
         tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]: 
@@ -87,6 +88,11 @@ def split_data(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np
     val_df = df[df['split'] == 'val'].copy()
     test_df = df[df['split'] == 'test'].copy()
 
+    if balance_data:
+        train_df = __balance_dataset(train_df)
+        val_df = __balance_dataset(val_df)
+        test_df = __balance_dataset(test_df)
+
     # Separate features and target
     X_train = train_df.drop(['split', 'category'], axis=1).values
     X_val = val_df.drop(['split', 'category'], axis=1).values  
@@ -97,10 +103,28 @@ def split_data(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np
     y_test = test_df['category'].values
 
     print(f"Train set: {len(X_train)} samples")
-    print(f"Validation set: {len(X_val)} samples")
+    print(f"Validation set: {len(X_val)} samples") 
     print(f"Test set: {len(X_test)} samples")
 
+    if balance_data:
+        print("\nSamples per category after balancing:")
+        for split_name, split_df in [("Train", train_df), ("Validation", val_df), ("Test", test_df)]:
+            print(f"\n{split_name} set:")
+            print(split_df['category'].value_counts())
+
     return X_train, X_val, X_test, y_train, y_val, y_test
+
+def __balance_dataset(split_df):
+    # Find minimum number of samples per category
+    min_samples = split_df['category'].value_counts().min()
+    
+    # For each category, keep only first min_samples rows
+    balanced_dfs = []
+    for category in split_df['category'].unique():
+        category_df = split_df[split_df['category'] == category]
+        balanced_dfs.append(category_df.head(min_samples))
+    
+    return pd.concat(balanced_dfs)
 
 def save_model(model: torch.nn.Module, file_path: str) -> None:
     """
