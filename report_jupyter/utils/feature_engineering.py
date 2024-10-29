@@ -23,6 +23,11 @@ from tqdm import tqdm
 # Scaling
 from sklearn.preprocessing import MinMaxScaler
 
+def __clear_cuda_memory():
+    """Clear CUDA memory if available."""
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
 def __get_device() -> torch.device:
     """
     Determine the best available device for computation.
@@ -40,11 +45,17 @@ def __get_device() -> torch.device:
         return torch.device("cpu")
 
 def __load_bert_model(model_name: str):
-    tokenizer = BertTokenizer.from_pretrained(model_name)
-    model = BertModel.from_pretrained(model_name)
-    if torch.cuda.is_available() and torch.cuda.device_count() > 1:
-        model = nn.DataParallel(model)
-    return tokenizer, model
+    try:
+        tokenizer = BertTokenizer.from_pretrained(model_name)
+        model = BertModel.from_pretrained(model_name)
+        if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+            model = nn.DataParallel(model)
+        return tokenizer, model
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __load_bert_model(model_name)
+        raise e
 
 def __process_text_column(column: pd.Series, process_func: callable, batch_size: int) -> pd.Series:
     """
@@ -58,47 +69,77 @@ def __process_text_column(column: pd.Series, process_func: callable, batch_size:
     Returns:
         pd.Series: The processed column.
     """
-    processed = []
-    for i in tqdm(range(0, len(column), batch_size), desc="Processing text column"):
-        batch = column.iloc[i:i+batch_size]
-        processed.extend([process_func(text) if isinstance(text, str) else text for text in batch])
-    return pd.Series(processed)
+    try:
+        processed = []
+        for i in tqdm(range(0, len(column), batch_size), desc="Processing text column"):
+            batch = column.iloc[i:i+batch_size]
+            processed.extend([process_func(text) if isinstance(text, str) else text for text in batch])
+        return pd.Series(processed)
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __process_text_column(column, process_func, batch_size)
+        raise e
 
 def __bert_lemmatize(text: str, tokenizer: BertTokenizer, model: BertModel, device: torch.device) -> str:
-    if not isinstance(text, str):
-        text = str(text)
-    
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    
-    with torch.no_grad():
-        model(**inputs)
-    
-    lemmatized_tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
-    lemmatized_text = ' '.join([token for token in lemmatized_tokens if token not in ['[CLS]', '[SEP]', '[PAD]']])
-    
-    return lemmatized_text
+    try:
+        if not isinstance(text, str):
+            text = str(text)
+        
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        
+        with torch.no_grad():
+            model(**inputs)
+        
+        lemmatized_tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
+        lemmatized_text = ' '.join([token for token in lemmatized_tokens if token not in ['[CLS]', '[SEP]', '[PAD]']])
+        
+        return lemmatized_text
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __bert_lemmatize(text, tokenizer, model, device)
+        raise e
 
 def __lemmatize_column(column: pd.Series, tokenizer: BertTokenizer, model: BertModel, device: torch.device, batch_size: int) -> pd.Series:
-    tokenized = __process_text_column(column, tokenizer.tokenize, batch_size)
-    return __process_text_column(tokenized, lambda text: __bert_lemmatize(text, tokenizer, model, device), batch_size)
+    try:
+        tokenized = __process_text_column(column, tokenizer.tokenize, batch_size)
+        return __process_text_column(tokenized, lambda text: __bert_lemmatize(text, tokenizer, model, device), batch_size)
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __lemmatize_column(column, tokenizer, model, device, batch_size)
+        raise e
 
 def __get_embeddings(texts: pd.Series, tokenizer: BertTokenizer, model: BertModel, device: torch.device) -> np.ndarray:
-    inputs = tokenizer(texts.tolist(), return_tensors="pt", truncation=True, padding=True, max_length=512)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    
-    with torch.no_grad():
-        outputs = model(**inputs)
-    return outputs.last_hidden_state[:, 0, :].cpu().numpy()
+    try:
+        inputs = tokenizer(texts.tolist(), return_tensors="pt", truncation=True, padding=True, max_length=512)
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        
+        with torch.no_grad():
+            outputs = model(**inputs)
+        return outputs.last_hidden_state[:, 0, :].cpu().numpy()
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __get_embeddings(texts, tokenizer, model, device)
+        raise e
 
 def __vectorize_column(df: pd.DataFrame, column: str, tokenizer: BertTokenizer, model: BertModel, device: torch.device, batch_size: int) -> pd.DataFrame:
-    df[column] = df[column].astype(str)
-    embeddings = []
-    for i in tqdm(range(0, len(df), batch_size), desc=f"Vectorizing {column}"):
-        batch = df[column].iloc[i:i+batch_size]
-        embeddings.extend(__get_embeddings(batch, tokenizer, model, device))
-    embedding_df = pd.DataFrame(embeddings, columns=[f'{column}_emb_{i}' for i in range(embeddings[0].shape[0])])
-    return pd.concat([df, embedding_df], axis=1)
+    try:
+        df[column] = df[column].astype(str)
+        embeddings = []
+        for i in tqdm(range(0, len(df), batch_size), desc=f"Vectorizing {column}"):
+            batch = df[column].iloc[i:i+batch_size]
+            embeddings.extend(__get_embeddings(batch, tokenizer, model, device))
+        embedding_df = pd.DataFrame(embeddings, columns=[f'{column}_emb_{i}' for i in range(embeddings[0].shape[0])])
+        return pd.concat([df, embedding_df], axis=1)
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return __vectorize_column(df, column, tokenizer, model, device, batch_size)
+        raise e
 
 def lemmatize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
     """
@@ -112,16 +153,22 @@ def lemmatize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-wh
     Returns:
         pd.DataFrame: The DataFrame with lemmatized text in specified columns.
     """
-    tokenizer, model = __load_bert_model(model_name)
-    device = __get_device()
-    model = model.to(device)
-    
-    text_columns = ['title', 'summary', 'comment', 'authors']
+    try:
+        tokenizer, model = __load_bert_model(model_name)
+        device = __get_device()
+        model = model.to(device)
+        
+        text_columns = ['title', 'summary', 'comment', 'authors']
 
-    for column in tqdm(text_columns, desc="Lemmatizing columns"):
-        df[column] = __lemmatize_column(df[column], tokenizer, model, device, batch_size)
+        for column in tqdm(text_columns, desc="Lemmatizing columns"):
+            df[column] = __lemmatize_column(df[column], tokenizer, model, device, batch_size)
 
-    return df
+        return df
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return lemmatize(df, model_name, batch_size)
+        raise e
 
 def vectorize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
     """
@@ -135,16 +182,22 @@ def vectorize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-wh
     Returns:
         pd.DataFrame: The DataFrame with the vectorized text added as new columns for each input column.
     """
-    tokenizer, model = __load_bert_model(model_name)
-    device = __get_device()
-    model = model.to(device)
+    try:
+        tokenizer, model = __load_bert_model(model_name)
+        device = __get_device()
+        model = model.to(device)
 
-    columns_to_vectorize = ['title', 'summary', 'comment', 'authors']
+        columns_to_vectorize = ['title', 'summary', 'comment', 'authors']
 
-    for column in tqdm(columns_to_vectorize, desc="Vectorizing columns"):
-        df = __vectorize_column(df, column, tokenizer, model, device, batch_size)
+        for column in tqdm(columns_to_vectorize, desc="Vectorizing columns"):
+            df = __vectorize_column(df, column, tokenizer, model, device, batch_size)
 
-    return df
+        return df
+    except RuntimeError as e:
+        if "out of memory" in str(e):
+            __clear_cuda_memory()
+            return vectorize(df, model_name, batch_size)
+        raise e
 
 def word_count(df: pd.DataFrame, batch_size: int = 1000) -> pd.DataFrame:
     """
