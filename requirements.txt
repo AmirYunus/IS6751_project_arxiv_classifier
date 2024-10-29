@@ -36,3 +36,6 @@ tqdm==4.66.5
 
 # GIF animation
 imageio==2.36.0
+
+# arXiv API
+arxiv==2.1.3

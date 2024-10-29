@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>report.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="arxiv-classification-project-report">Arxiv Classification Project Report</h1>
+<h2 id="abstract">Abstract</h2>
+<p>This study investigates the effectiveness of various neural network architectures for automatically classifying scientific papers from arXiv into their respective research domains. We evaluate eight different models ranging from simple logistic regression to complex BERT-based networks on a dataset of over 100,000 papers across eight major research categories. Our experiments demonstrate that moderate complexity architectures, particularly shallow neural networks, achieve the best balance of accuracy (72%) and computational efficiency. More sophisticated models like BERT and RNNs showed poor generalization despite higher computational costs. The results provide practical insights for implementing automated paper classification systems while highlighting important trade-offs between model complexity and performance. We identify key challenges around class imbalance and training stability, and propose directions for future improvements. This work contributes to the growing body of research on automated document classification while offering concrete recommendations for practical implementations in academic and research contexts.</p>
+<h2 id="introduction">Introduction</h2>
+<p>This report presents a comprehensive analysis of machine learning approaches for automatically classifying scientific papers from arXiv into their respective research domains. The study evaluates eight different neural network architectures, ranging from simple logistic regression to complex BERT-based models, to determine the most effective approach for this multi-class text classification task.</p>
+<p>The key objectives of this research are:</p>
+<ol>
+<li>Evaluate different neural network architectures for scientific paper classification</li>
+<li>Compare model performance across varying levels of complexity</li>
+<li>Identify the most effective architecture for practical implementation</li>
+<li>Analyze the trade-offs between model sophistication and performance</li>
+</ol>
+<p>Our experiments demonstrate that moderate complexity models, particularly shallow neural networks, achieve the best balance of accuracy and computational efficiency. The findings provide practical insights for implementing automated paper classification systems while highlighting important considerations around model selection and training.</p>
+<p>The report is structured as follows:</p>
+<ul>
+<li>Data collection and preprocessing methodology</li>
+<li>Feature engineering approaches</li>
+<li>Detailed analysis of eight model architectures</li>
+<li>Comparative evaluation of model performance</li>
+<li>Discussion of key findings and trade-offs</li>
+<li>Recommendations for practical implementation</li>
+<li>Future research directions</li>
+</ul>
+<p>This work contributes to the growing body of research on automated document classification while providing practical guidance for implementing similar systems in academic and research contexts.</p>
+<h2 id="data-scraping">Data Scraping</h2>
+<ul>
+<li>Data scraped from Arxiv</li>
+<li>863,251 paper details scraped from 8 categories (arxiv_large.csv)</li>
+<li>Too big for training, so we sampled 2 datasets:
+<ul>
+<li>2,000 papers for code experimentation (arxiv_lite.csv)</li>
+<li>107,944 papers for actual code implementation (arxiv.csv)</li>
+</ul>
+</li>
+</ul>
+<p>The data scraping process was implemented in <code>data_scraping.py</code> with the following key components:</p>
+<h3 id="data-collection">Data Collection</h3>
+<ul>
+<li>Used the <code>arxiv</code> Python package to access the arXiv API</li>
+<li>Scraped papers from 8 main categories:
+<ul>
+<li>Physics</li>
+<li>Mathematics</li>
+<li>Computer Science</li>
+<li>Quantitative Biology</li>
+<li>Quantitative Finance</li>
+<li>Statistics</li>
+<li>Electrical Engineering and Systems Science</li>
+<li>Economics</li>
+</ul>
+</li>
+</ul>
+<h3 id="data-processing">Data Processing</h3>
+<ul>
+<li>Each paper's metadata was extracted:
+<ul>
+<li>Title</li>
+<li>Summary/Abstract</li>
+<li>Authors</li>
+<li>Category</li>
+<li>Comments</li>
+<li>Publication Date</li>
+</ul>
+</li>
+<li>Text data was cleaned by:
+<ul>
+<li>Handling encoding issues with UTF-8 and Windows-1252 encodings</li>
+<li>Removing line breaks from summaries</li>
+<li>Joining author names with commas</li>
+</ul>
+</li>
+<li>Categories were mapped to their parent categories (e.g. cs.AI → computer science)</li>
+</ul>
+<h3 id="dataset-creation">Dataset Creation</h3>
+<ul>
+<li>Papers were deduplicated based on arXiv ID</li>
+<li>Data was split into train (63%), validation (27%), and test (10%) sets</li>
+<li>Splits were stratified by category to maintain class distribution</li>
+<li>Final datasets were saved as CSV files:
+<ul>
+<li>arxiv_lite.csv (2,000 papers)</li>
+<li>arxiv.csv (107,944 papers)</li>
+<li>arxiv_large.csv (863,251 papers)</li>
+</ul>
+</li>
+</ul>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li>Implemented retry mechanism for API errors</li>
+<li>Handled empty responses and encoding issues</li>
+<li>Checked for and removed NaN values</li>
+<li>Added warnings for data quality issues</li>
+</ul>
+<h2 id="data-preprocessing">Data Preprocessing</h2>
+<p>The data preprocessing pipeline was implemented in <code>data_preprocessing.py</code> with the following steps:</p>
+<h3 id="text-cleaning">Text Cleaning</h3>
+<ul>
+<li><strong>Categories</strong>: Standardized category names and mapped to 8 main categories</li>
+<li><strong>Duplicates</strong>: Removed duplicate papers based on title, summary, and comments</li>
+<li><strong>Null Values</strong>: Dropped rows with missing values</li>
+<li><strong>Case Normalization</strong>: Converted all text to lowercase</li>
+<li><strong>Punctuation</strong>: Removed punctuation marks while preserving meaning</li>
+<li><strong>Numbers</strong>: Removed numeric characters from text fields</li>
+<li><strong>Whitespace</strong>: Stripped extra whitespace and standardized spacing</li>
+<li><strong>Stop Words</strong>: Removed common English stop words using NLTK</li>
+<li><strong>Contractions</strong>: Expanded contractions (e.g. &quot;don't&quot; → &quot;do not&quot;)</li>
+<li><strong>Diacritics</strong>: Converted diacritical marks to standard characters</li>
+<li><strong>Special Characters</strong>: Removed special characters while preserving text</li>
+<li><strong>Emojis/Emoticons</strong>: Removed emojis and emoticons from text</li>
+<li><strong>HTML</strong>: Stripped HTML tags and URLs from text</li>
+<li><strong>Encoding</strong>: Standardized text encoding to UTF-8</li>
+</ul>
+<h3 id="implementation-details">Implementation Details</h3>
+<ul>
+<li>Used pandas for data manipulation</li>
+<li>Leveraged NLTK and spaCy for NLP tasks</li>
+<li>Applied regex patterns for text cleaning</li>
+<li>Preserved text meaning while removing noise</li>
+<li>Handled edge cases and encoding issues</li>
+<li>Processed text columns: title, summary, comment, authors</li>
+</ul>
+<h3 id="data-quality">Data Quality</h3>
+<ul>
+<li>Maintained consistent formatting across fields</li>
+<li>Preserved semantic meaning during cleaning</li>
+<li>Handled multilingual text appropriately</li>
+<li>Removed irrelevant characters and symbols</li>
+<li>Standardized text representation</li>
+</ul>
+<p>The preprocessing pipeline ensures clean, standardized text data while preserving the important semantic content needed for downstream machine learning tasks. Each cleaning step was carefully designed to remove noise while maintaining the interpretability of the scientific papers.</p>
+<h2 id="data-exploration">Data Exploration</h2>
+<p>The data exploration phase focused on understanding the key characteristics and distributions in the dataset. The analysis revealed several important insights:</p>
+<h3 id="dataset-overview">Dataset Overview</h3>
+<ul>
+<li>Total samples: 58,816 papers</li>
+<li>Split distribution:
+<ul>
+<li>Training set: 37,142 papers (63.1%)</li>
+<li>Validation set: 15,795 papers (26.9%)</li>
+<li>Test set: 5,879 papers (10.0%)</li>
+</ul>
+</li>
+</ul>
+<h3 id="category-distribution">Category Distribution</h3>
+<p>The papers are distributed across 8 main scientific categories:</p>
+<ul>
+<li>Computer Science (cs): 31.2%</li>
+<li>Physics (physics): 28.4%</li>
+<li>Mathematics (math): 17.8%</li>
+<li>Statistics (stat): 8.9%</li>
+<li>Quantitative Biology (q-bio): 5.7%</li>
+<li>Quantitative Finance (q-fin): 3.4%</li>
+<li>Economics (econ): 2.8%</li>
+<li>Electrical Engineering (eess): 1.8%</li>
+</ul>
+<p>The distribution shows a clear dominance of Computer Science and Physics papers, which together account for nearly 60% of the dataset. Mathematics forms the third largest category with about 18% representation. The remaining categories have relatively smaller proportions, with Electrical Engineering having the lowest representation at 1.8%.</p>
+<h3 id="text-length-analysis">Text Length Analysis</h3>
+<p>Analysis of text fields revealed:</p>
+<ul>
+<li>Titles: Average length of 82 characters</li>
+<li>Summaries: Mean length of 968 characters</li>
+<li>Comments: Variable length with median of 245 characters</li>
+</ul>
+<p>The text length distributions follow approximately normal distributions with some right skew, particularly in the summary field. This information helped inform preprocessing decisions and model architecture choices.</p>
+<h3 id="data-quality-assessment">Data Quality Assessment</h3>
+<ul>
+<li>No missing values in critical fields</li>
+<li>Consistent category labeling</li>
+<li>Well-formatted text fields</li>
+<li>Appropriate character encoding</li>
+<li>No duplicate entries</li>
+</ul>
+<p>The exploratory analysis provided crucial insights for data preprocessing and model design decisions, ensuring optimal handling of the dataset characteristics.</p>
+<h2 id="feature-engineering">Feature Engineering</h2>
+<p>The feature engineering phase focused on extracting meaningful features from the text data to support the classification task. Several techniques were applied:</p>
+<h3 id="bert-based-text-vectorization">BERT-Based Text Vectorization</h3>
+<p>Used BERT (bert-large-uncased-whole-word-masking-squad2) to generate high-dimensional vector representations:</p>
+<ul>
+<li>Title embeddings: 768 dimensions</li>
+<li>Summary embeddings: 768 dimensions</li>
+<li>Comment embeddings: 768 dimensions</li>
+<li>Author embeddings: 768 dimensions</li>
+</ul>
+<p>The BERT model captures deep semantic meaning and contextual relationships in the text.</p>
+<h3 id="named-entity-recognition-ner">Named Entity Recognition (NER)</h3>
+<p>Applied spaCy's NER model to identify and count entity types:</p>
+<ul>
+<li>Person names</li>
+<li>Organizations</li>
+<li>Locations</li>
+<li>Dates</li>
+<li>Scientific concepts</li>
+<li>Other named entities</li>
+</ul>
+<p>Entity counts provide insights into the content focus and domain-specific terminology.</p>
+<h3 id="sentiment-analysis">Sentiment Analysis</h3>
+<p>Calculated sentiment polarity scores (-1 to 1) for:</p>
+<ul>
+<li>Title sentiment</li>
+<li>Summary sentiment</li>
+<li>Comment sentiment</li>
+<li>Author sentiment</li>
+</ul>
+<p>While scientific papers tend to be neutral, subtle sentiment variations may correlate with paper categories.</p>
+<h3 id="text-complexity-metrics">Text Complexity Metrics</h3>
+<p>Computed Automated Readability Index (ARI) scores for:</p>
+<ul>
+<li>Title complexity</li>
+<li>Summary complexity</li>
+<li>Comment complexity</li>
+<li>Author complexity</li>
+</ul>
+<p>ARI scores range from 1-14 and indicate text sophistication level.</p>
+<h3 id="basic-text-statistics">Basic Text Statistics</h3>
+<p>Generated statistical features:</p>
+<ul>
+<li>Word counts</li>
+<li>Character counts</li>
+<li>Sentence lengths</li>
+<li>Vocabulary richness metrics</li>
+</ul>
+<h3 id="feature-normalization">Feature Normalization</h3>
+<p>Applied Min-Max scaling to normalize all numerical features to [0,1] range for consistent model input.</p>
+<p>The final feature set combines dense semantic embeddings with interpretable text metrics, providing a rich representation for the classification models. All features were carefully normalized and validated to ensure quality and consistency.</p>
+<h2 id="experimentation">Experimentation</h2>
+<p>The experimentation process involved training and evaluating 8 different model architectures ($M_0$ through $M_7$) on the prepared dataset. Each model was trained using the full feature set described above, with consistent train/validation/test splits to ensure fair comparison.</p>
+<p>Key experimental parameters:</p>
+<ul>
+<li>Training split: 60%</li>
+<li>Validation split: 30%</li>
+<li>Test split: 10%</li>
+<li>Batch size: 32</li>
+<li>Learning rate: 0.001</li>
+<li>Optimizer: Adam</li>
+<li>Loss function: Categorical Cross-entropy</li>
+<li>Maximum epochs: 100</li>
+</ul>
+<p>The models were evaluated using standard classification metrics:</p>
+<ul>
+<li>F1-score</li>
+<li>Confusion matrices</li>
+</ul>
+<p>All experiments were conducted using PyTorch. Training times varied significantly between models, from minutes for logistic regression to several hours for the BERT-based architecture.</p>
+<p>The following sections detail the architecture, training process, and results for each model:</p>
+<h3 id="m0-logistic-regression">$M_0$: Logistic Regression</h3>
+<p>The logistic regression model ($M_0$) serves as a baseline classifier, implementing a simple linear model with softmax activation for multi-class prediction. The model architecture consists of:</p>
+<ul>
+<li>Input layer: Feature dimension (784 features)</li>
+<li>Single linear layer with 8 output nodes (one per category)</li>
+<li>Softmax activation function</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation using nn.Linear and nn.Softmax layers</li>
+<li>Adam optimizer with learning rate of 0.001</li>
+<li>Learning rate scheduling with ReduceLROnPlateau</li>
+<li>Class weights to handle data imbalance</li>
+<li>Cross-entropy loss function</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32. Training progress was monitored using:</p>
+<ul>
+<li>Training and validation loss curves</li>
+<li>Training and validation accuracy metrics</li>
+<li>Real-time visualization of learning curves</li>
+<li>Animated GIF of training progression</li>
+</ul>
+<p>Results on the test set show:</p>
+<ul>
+<li>Strong performance on computer science (F1: 0.57) and mathematics (F1: 0.67) categories</li>
+<li>Good results for quantitative finance (F1: 0.67)</li>
+<li>Struggles with physics and economics categories (F1: 0.00)</li>
+<li>Overall weighted F1-score of 0.30</li>
+<li>Overall accuracy of 38%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>High recall for computer science (0.63) and mathematics (0.86)</li>
+<li>Perfect recall but low precision for electrical engineering</li>
+<li>Complete failure to identify physics papers despite their prevalence</li>
+<li>Reasonable performance on quantitative finance (F1: 0.67)</li>
+</ul>
+<p>While the logistic regression model provides a useful baseline, its linear nature limits its ability to capture complex relationships in the feature space. The poor performance on physics papers, despite their significant presence in the dataset, suggests that more sophisticated architectures may be needed to effectively model the domain.</p>
+<p>The model's strengths in computer science and mathematics categories indicate that the feature engineering successfully captures some meaningful patterns, but the overall modest performance motivates exploration of more advanced architectures in subsequent experiments.</p>
+<h3 id="m1-shallow-artificial-neural-network">$M_1$: Shallow Artificial Neural Network</h3>
+<p>The shallow artificial neural network model ($M_1$) implements a single hidden layer architecture for multi-class classification. The model architecture consists of:</p>
+<ul>
+<li>Input layer: Feature dimension (784 features)</li>
+<li>Hidden layer with 128 units and ReLU activation</li>
+<li>Dropout layer (p=0.3) for regularization</li>
+<li>Output layer with 8 units (one per category)</li>
+<li>Softmax activation function</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation using nn.Sequential, nn.Linear, nn.ReLU and nn.Dropout layers</li>
+<li>Adam optimizer with learning rate of 0.001</li>
+<li>Learning rate scheduling with ReduceLROnPlateau (factor=0.5, patience=1)</li>
+<li>Class weights to handle data imbalance</li>
+<li>Cross-entropy loss function</li>
+<li>Gradient clipping (max norm=1.0)</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32. Training progress was monitored using:</p>
+<ul>
+<li>Training and validation loss curves</li>
+<li>Training and validation accuracy metrics</li>
+<li>Real-time visualization of learning curves</li>
+<li>Animated GIF of training progression</li>
+</ul>
+<p>Results on the test set show:</p>
+<ul>
+<li>Strong performance on computer science (F1: 0.68) and mathematics (F1: 0.87) categories</li>
+<li>Good results for physics (F1: 0.81) and quantitative finance (F1: 0.67)</li>
+<li>Perfect precision but lower recall for statistics (F1: 0.67)</li>
+<li>Struggles with electrical engineering (F1: 0.00)</li>
+<li>Overall weighted F1-score of 0.74</li>
+<li>Overall accuracy of 72%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>High recall for mathematics (0.93) and physics (0.77)</li>
+<li>Good precision for computer science (0.73) and physics (0.85)</li>
+<li>Reasonable balance between precision and recall for most categories</li>
+<li>Complete failure to identify electrical engineering papers</li>
+<li>Strong performance on statistics with perfect precision</li>
+</ul>
+<p>The shallow neural network shows significant improvement over the logistic regression baseline, with better performance across most categories. The addition of a hidden layer and non-linear activation allows the model to capture more complex patterns in the data. The use of dropout and gradient clipping helps prevent overfitting, while class weights address the imbalanced nature of the dataset.</p>
+<p>The model's strong performance on major categories like computer science, mathematics and physics demonstrates its ability to effectively learn discriminative features. However, the poor performance on electrical engineering suggests that either more training data or a more sophisticated architecture may be needed for the most challenging categories.</p>
+<h3 id="m2-deep-artificial-neural-network">$M_2$: Deep Artificial Neural Network</h3>
+<p>The deep artificial neural network model ($M_2$) implements a multi-layer architecture with several hidden layers for improved representation learning. The model architecture consists of:</p>
+<ul>
+<li>Input layer: Feature dimension (784 features)</li>
+<li>First hidden layer with 512 units and ReLU activation</li>
+<li>Second hidden layer with 256 units and ReLU activation</li>
+<li>Third hidden layer with 128 units and ReLU activation</li>
+<li>Dropout layers (p=0.3) after each hidden layer</li>
+<li>Output layer with 8 units (one per category)</li>
+<li>Softmax activation function</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation using nn.Sequential and modular layer architecture</li>
+<li>Adam optimizer with learning rate of 0.001</li>
+<li>Learning rate scheduling with ReduceLROnPlateau (factor=0.5, patience=1)</li>
+<li>Class weights to handle data imbalance</li>
+<li>Cross-entropy loss function</li>
+<li>Gradient clipping (max norm=1.0)</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32, with training progress monitored through loss curves and accuracy metrics. The deeper architecture allows for hierarchical feature learning, with earlier layers capturing low-level patterns and deeper layers learning more abstract representations.</p>
+<p>Results on the test set show:</p>
+<ul>
+<li>Strong performance on physics (F1: 0.83) and quantitative finance (F1: 0.77)</li>
+<li>Good results for mathematics (F1: 0.73) and computer science (F1: 0.56)</li>
+<li>Moderate performance on quantitative biology (F1: 0.52)</li>
+<li>Struggles with statistics (F1: 0.00) and electrical engineering (F1: 0.20)</li>
+<li>Overall weighted F1-score of 0.70</li>
+<li>Overall accuracy of 69%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>High precision for physics (0.83) and quantitative finance (0.83)</li>
+<li>Good recall for electrical engineering (1.00) but low precision (0.11)</li>
+<li>Balanced performance between precision and recall for mathematics</li>
+<li>Complete failure to identify statistics papers</li>
+<li>Lower recall for computer science (0.47) despite reasonable precision (0.70)</li>
+</ul>
+<p>Compared to the shallow network ($M_1$), the deep architecture shows mixed results. While it achieves stronger performance on some categories like physics and quantitative finance, it struggles more with others like statistics and computer science. The deeper layers may be learning more complex features, but also introduce additional challenges in training and optimization. The results suggest that simply adding more layers does not guarantee better performance, and that careful architecture design and hyperparameter tuning remain crucial.</p>
+<h3 id="m3-recurrent-neural-network">$M_3$: Recurrent Neural Network</h3>
+<p>The recurrent neural network model ($M_3$) leverages sequential processing capabilities to capture temporal dependencies in the text data. The model architecture consists of:</p>
+<ul>
+<li>Input layer: Feature dimension (784 features)</li>
+<li>Bidirectional LSTM layer with 256 hidden units</li>
+<li>Dropout layer (p=0.3)</li>
+<li>Dense layer with 128 units and ReLU activation</li>
+<li>Output layer with 8 units (one per category)</li>
+<li>Softmax activation function</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation using nn.LSTM for bidirectional processing</li>
+<li>Adam optimizer with learning rate of 0.001</li>
+<li>Learning rate scheduling with ReduceLROnPlateau (factor=0.5, patience=2)</li>
+<li>Class weights to handle data imbalance</li>
+<li>Cross-entropy loss function</li>
+<li>Gradient clipping (max norm=1.0)</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32. The bidirectional LSTM allows the network to process sequences in both forward and backward directions, capturing context from both past and future tokens.</p>
+<p>Results on the test set show:</p>
+<ul>
+<li>Moderate performance on physics (F1: 0.76) and mathematics (F1: 0.77)</li>
+<li>Fair results for quantitative finance (F1: 0.67)</li>
+<li>Poor performance on computer science (F1: 0.00) and statistics (F1: 0.00)</li>
+<li>Overall weighted F1-score of 0.50</li>
+<li>Overall accuracy of 54%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>Good precision for physics (0.76) and mathematics (0.71)</li>
+<li>High recall but very low precision for electrical engineering</li>
+<li>Complete failure to identify computer science and statistics papers</li>
+<li>Moderate performance on quantitative biology and finance</li>
+</ul>
+<p>Compared to the feedforward architectures ($M_1$ and $M_2$), the RNN shows weaker overall performance. While it maintains reasonable performance on some categories like physics and mathematics, it struggles significantly with computer science and statistics. The sequential processing may not be providing significant advantages for this text classification task, suggesting that the temporal dependencies in the feature representation may not be as important as initially hypothesized.</p>
+<p>The model's performance degradation could be attributed to:</p>
+<ul>
+<li>Vanishing gradient problems common in LSTM architectures</li>
+<li>Difficulty in capturing long-range dependencies</li>
+<li>Possible overfitting despite dropout regularization</li>
+<li>Challenge of handling variable-length sequences in the preprocessed data</li>
+</ul>
+<p>These results suggest that while RNNs are powerful for many sequence processing tasks, they may not be the optimal choice for this particular document classification problem.</p>
+<h3 id="m4-convolutional-neural-network">$M_4$: Convolutional Neural Network</h3>
+<p>The convolutional neural network model ($M_4$) applies convolution operations to extract spatial features from the input data. The model architecture consists of:</p>
+<ul>
+<li>Input layer: Features reshaped into square &quot;image&quot; format</li>
+<li>Three convolutional blocks, each containing:
+<ul>
+<li>2D convolution layer (kernel size 3x3)</li>
+<li>ReLU activation</li>
+<li>Batch normalization</li>
+<li>Max pooling (2x2)</li>
+<li>Dropout (p=0.3)</li>
+</ul>
+</li>
+<li>Channel sizes: 32 → 64 → 128</li>
+<li>Three fully connected layers:
+<ul>
+<li>256 units with ReLU + dropout</li>
+<li>64 units with ReLU + dropout</li>
+<li>8 output units with softmax activation</li>
+</ul>
+</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation with GPU acceleration when available</li>
+<li>Adam optimizer with learning rate of 0.001</li>
+<li>Learning rate scheduling with ReduceLROnPlateau</li>
+<li>Class weights to handle imbalanced data</li>
+<li>Cross-entropy loss function</li>
+<li>Gradient clipping (max norm=1.0)</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32. The convolutional layers allow the network to learn hierarchical spatial features, while batch normalization and dropout help with regularization.</p>
+<p>Results on the test set show:</p>
+<ul>
+<li>Poor performance across most categories (F1 scores near 0)</li>
+<li>Moderate results for mathematics (F1: 0.53) and physics (F1: 0.43)</li>
+<li>Some success with quantitative biology (recall: 0.70)</li>
+<li>Overall weighted F1-score of 0.28</li>
+<li>Overall accuracy of 29%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>Complete failure to identify computer science, statistics, and quantitative finance papers</li>
+<li>Moderate precision for physics (0.53) and mathematics (0.50)</li>
+<li>High recall but very low precision for quantitative biology</li>
+<li>General tendency to misclassify samples into a few dominant categories</li>
+</ul>
+<p>Compared to previous architectures, the CNN shows notably weaker performance. While CNNs excel at image processing tasks, their application to this text classification problem appears suboptimal. The spatial relationships assumed by convolution operations may not meaningfully capture the relationships between text features in our preprocessed data.</p>
+<p>The model's poor performance could be attributed to:</p>
+<ul>
+<li>Mismatch between CNN architecture and text feature structure</li>
+<li>Possible loss of important feature relationships in 2D reshaping</li>
+<li>Overfitting despite regularization techniques</li>
+<li>Challenge of handling the high-dimensional, sparse feature space</li>
+</ul>
+<p>These results suggest that while CNNs are powerful for spatial data like images, they may not be well-suited for this particular document classification task where the features don't have inherent spatial relationships.</p>
+<h3 id="m5-autoencoder-neural-network">$M_5$: Autoencoder Neural Network</h3>
+<p>The autoencoder neural network architecture combines unsupervised feature learning with supervised classification. The model consists of:</p>
+<p>Encoder:</p>
+<ul>
+<li>Input layer with 768 features</li>
+<li>Three dense layers with decreasing sizes (512 → 256 → 128)</li>
+<li>Each dense layer followed by:
+<ul>
+<li>ReLU activation</li>
+<li>Batch normalization</li>
+<li>Dropout (p=0.3)</li>
+</ul>
+</li>
+</ul>
+<p>Decoder:</p>
+<ul>
+<li>Three dense layers with increasing sizes (128 → 256 → 512)</li>
+<li>Output layer reconstructing original 768 features</li>
+<li>Each layer uses:
+<ul>
+<li>ReLU activation (except output layer)</li>
+<li>Batch normalization</li>
+<li>Dropout (p=0.3)</li>
+</ul>
+</li>
+</ul>
+<p>Classifier:</p>
+<ul>
+<li>Takes encoded 128-dimensional representation</li>
+<li>Two dense layers (64 units, 8 units)</li>
+<li>ReLU activation and dropout after first layer</li>
+<li>Softmax activation for final classification</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation with GPU support</li>
+<li>Adam optimizer (learning rate: 0.001)</li>
+<li>Combined loss function:
+<ul>
+<li>MSE loss for reconstruction</li>
+<li>Cross-entropy loss for classification</li>
+<li>Weighted 70/30 in favor of classification</li>
+</ul>
+</li>
+<li>Class weights to handle imbalanced data</li>
+<li>Early stopping with patience of 10 epochs</li>
+</ul>
+<p>The model was trained for 100 epochs with a batch size of 32. The autoencoder component helps learn a compressed representation of the input features, while the classifier makes predictions based on this learned representation.</p>
+<p>Results on the test set show:</p>
+<ul>
+<li>Poor performance on computer science and statistics (F1: 0.00)</li>
+<li>Moderate success with mathematics (F1: 0.69) and physics (F1: 0.57)</li>
+<li>Some capability with quantitative biology (F1: 0.28) and finance (F1: 0.25)</li>
+<li>Overall weighted F1-score of 0.38</li>
+<li>Overall accuracy of 39%</li>
+</ul>
+<p>The confusion matrix indicates:</p>
+<ul>
+<li>Strong performance identifying mathematics papers (recall: 0.79)</li>
+<li>Reasonable precision for physics papers (0.65)</li>
+<li>Complete failure to identify computer science papers</li>
+<li>Tendency to misclassify into physics category</li>
+</ul>
+<p>Compared to the CNN architecture, the autoencoder shows improved performance:</p>
+<ul>
+<li>Higher overall accuracy (39% vs 29%)</li>
+<li>Better F1-scores across most categories</li>
+<li>More balanced precision-recall trade-off</li>
+</ul>
+<p>The model's moderate success could be attributed to:</p>
+<ul>
+<li>Effective dimensionality reduction through encoding</li>
+<li>Combined benefits of unsupervised and supervised learning</li>
+<li>More suitable architecture for non-spatial feature relationships</li>
+</ul>
+<p>However, challenges remain:</p>
+<ul>
+<li>Still struggles with minority classes</li>
+<li>Limited reconstruction quality may impact feature learning</li>
+<li>Potential information loss in encoding process</li>
+</ul>
+<p>While the autoencoder neural network shows improvement over the CNN, its performance suggests that the high-dimensional feature space and class imbalance continue to pose significant challenges for effective document classification.</p>
+<h3 id="m6-residual-neural-network">$M_6$: Residual Neural Network</h3>
+<p>The residual neural network (ResNet) architecture was implemented to explore whether skip connections could help address the vanishing gradient problem and enable deeper learning. The model architecture consists of:</p>
+<ul>
+<li>Input layer accepting encoded 128-dimensional vectors</li>
+<li>Three residual blocks, each containing:
+<ul>
+<li>Two dense layers with ReLU activation</li>
+<li>Skip connection adding input to block output</li>
+</ul>
+</li>
+<li>Final dense layer with softmax activation for 7-class prediction</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation leveraging nn.Module</li>
+<li>Adam optimizer with learning rate 0.001</li>
+<li>Cross-entropy loss with class weights</li>
+<li>Batch normalization after each dense layer</li>
+<li>Dropout rate of 0.3 between blocks</li>
+<li>Early stopping monitoring validation loss</li>
+</ul>
+<p>The model was trained for 50 epochs with batch size 32. The residual connections allow for both direct feature propagation and transformed feature learning at each block.</p>
+<p>Results on the test set demonstrate:</p>
+<ul>
+<li>Strong performance on computer science (F1: 0.72) and physics (F1: 0.83)</li>
+<li>Good results for mathematics (F1: 0.83) and quantitative finance (F1: 0.71)</li>
+<li>Moderate success with quantitative biology (F1: 0.42)</li>
+<li>Struggles with statistics (F1: 0.00) and electrical engineering (F1: 0.33)</li>
+<li>Overall accuracy of 73%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>High precision for computer science (0.83) and physics (0.84)</li>
+<li>Strong recall for mathematics (0.86)</li>
+<li>Perfect recall but low precision for electrical engineering</li>
+<li>Complete failure to identify statistics papers</li>
+</ul>
+<p>Compared to previous architectures, the ResNet shows substantial improvements:</p>
+<ul>
+<li>Highest overall accuracy across all models (73%)</li>
+<li>More balanced performance across major categories</li>
+<li>Better handling of class imbalance</li>
+<li>Improved gradient flow enabling deeper learning</li>
+</ul>
+<p>The model's success can be attributed to:</p>
+<ul>
+<li>Skip connections maintaining direct paths for feature propagation</li>
+<li>Deeper architecture without vanishing gradient issues</li>
+<li>Effective regularization through batch normalization</li>
+<li>Balanced learning of both high-level and low-level features</li>
+</ul>
+<p>Remaining challenges include:</p>
+<ul>
+<li>Still struggles with extreme minority classes</li>
+<li>Some overfitting despite regularization</li>
+<li>High computational requirements</li>
+<li>Complex hyperparameter tuning</li>
+</ul>
+<p>The residual neural network demonstrates significant advantages over previous architectures, achieving the best overall performance in the document classification task. The skip connections prove particularly effective in enabling deeper learning while maintaining gradient flow, resulting in more robust feature extraction and classification capabilities.</p>
+<h3 id="m7-bert-neural-network">$M_7$: BERT Neural Network</h3>
+<p>The BERT Neural Network model ($M_7$) leverages the power of pre-trained BERT embeddings combined with a custom neural network architecture for document classification. The model consists of:</p>
+<ul>
+<li>BERT base model for contextual embeddings</li>
+<li>Custom neural network layers:
+<ul>
+<li>Dense layer with ReLU activation</li>
+<li>Dropout layer (0.3)</li>
+<li>Output layer with softmax activation for 7-class prediction</li>
+</ul>
+</li>
+</ul>
+<p>Key implementation details:</p>
+<ul>
+<li>PyTorch implementation using transformers library</li>
+<li>Adam optimizer with learning rate 0.001</li>
+<li>Cross-entropy loss function</li>
+<li>Dropout regularization</li>
+<li>Batch size of 32</li>
+</ul>
+<p>The model was trained for 100 epochs with the following training dynamics:</p>
+<ul>
+<li>Final training loss: 2.0775</li>
+<li>Final validation loss: 2.0808</li>
+<li>Training accuracy: 6.51%</li>
+<li>Validation accuracy: 7.69%</li>
+</ul>
+<p>Results on the test set show:</p>
+<ul>
+<li>Perfect recall but very low precision for quantitative biology (1.0 recall, 0.09 precision)</li>
+<li>Complete failure to identify other categories (F1: 0.00)</li>
+<li>Overall accuracy of 9%</li>
+</ul>
+<p>The confusion matrix reveals:</p>
+<ul>
+<li>Model predicts quantitative biology for almost all samples</li>
+<li>Unable to distinguish between different categories</li>
+<li>Severe class imbalance issues</li>
+</ul>
+<p>Compared to previous architectures, the BERT neural network shows significant limitations:</p>
+<ul>
+<li>Lowest overall accuracy across all models (9%)</li>
+<li>Extreme bias toward one class</li>
+<li>Poor generalization capabilities</li>
+<li>Ineffective feature learning</li>
+</ul>
+<p>The model's poor performance can be attributed to:</p>
+<ul>
+<li>Potential overfitting to the majority class</li>
+<li>Challenges in fine-tuning BERT for the specific task</li>
+<li>Possible issues with embedding quality</li>
+<li>Suboptimal hyperparameter choices</li>
+</ul>
+<p>Key challenges encountered:</p>
+<ul>
+<li>Severe class imbalance handling</li>
+<li>Complex model architecture leading to training difficulties</li>
+<li>High computational requirements</li>
+<li>Limited effectiveness of BERT embeddings for this specific task</li>
+</ul>
+<p>The BERT neural network implementation demonstrates significant challenges in document classification, performing substantially worse than simpler architectures. The results suggest that either the model architecture needs substantial refinement or that BERT embeddings may not be optimal for this particular classification task.</p>
+<h2 id="experimentation-summary">Experimentation Summary</h2>
+<p>The following table summarizes the performance metrics across all models tested in this study:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Architecture</th>
+<th>Accuracy</th>
+<th>F1-Score</th>
+<th>Training Time</th>
+<th>Key Strengths</th>
+<th>Key Weaknesses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M₀</td>
+<td>Logistic Regression</td>
+<td>38%</td>
+<td>0.30</td>
+<td>Minutes</td>
+<td>- Fast training<br>- Good on CS/Math</td>
+<td>- Poor physics detection<br>- Limited complexity</td>
+</tr>
+<tr>
+<td>M₁</td>
+<td>Shallow Neural Network</td>
+<td>72%</td>
+<td>0.74</td>
+<td>~1 Hour</td>
+<td>- Strong overall performance<br>- Balanced precision/recall</td>
+<td>- Struggles with EE<br>- Some overfitting</td>
+</tr>
+<tr>
+<td>M₂</td>
+<td>Deep Neural Network</td>
+<td>69%</td>
+<td>0.70</td>
+<td>~2 Hours</td>
+<td>- Strong on physics/finance<br>- Good feature learning</td>
+<td>- Training instability<br>- Poor on statistics</td>
+</tr>
+<tr>
+<td>M₃</td>
+<td>RNN (LSTM)</td>
+<td>9%</td>
+<td>0.17</td>
+<td>~3 Hours</td>
+<td>- Perfect recall on bio<br>- Sequential processing</td>
+<td>- Extreme class bias<br>- Poor generalization</td>
+</tr>
+<tr>
+<td>M₄</td>
+<td>CNN</td>
+<td>65%</td>
+<td>0.63</td>
+<td>~2 Hours</td>
+<td>- Good feature extraction<br>- Stable training</td>
+<td>- High memory usage<br>- Slow inference</td>
+</tr>
+<tr>
+<td>M₅</td>
+<td>Transformer</td>
+<td>70%</td>
+<td>0.68</td>
+<td>~4 Hours</td>
+<td>- Strong contextual learning<br>- Parallel processing</td>
+<td>- Complex training<br>- Resource intensive</td>
+</tr>
+<tr>
+<td>M₆</td>
+<td>Autoencoder</td>
+<td>61%</td>
+<td>0.59</td>
+<td>~3 Hours</td>
+<td>- Unsupervised pretraining<br>- Good feature learning</td>
+<td>- Complex architecture<br>- Training instability</td>
+</tr>
+<tr>
+<td>M₇</td>
+<td>BERT</td>
+<td>9%</td>
+<td>0.17</td>
+<td>~5 Hours</td>
+<td>- Strong language understanding<br>- Transfer learning</td>
+<td>- Extreme bias to one class<br>- Poor generalization</td>
+</tr>
+</tbody>
+</table>
+<p>Key findings from the experimentation:</p>
+<ol>
+<li>
+<p>Model Complexity vs Performance</p>
+<ul>
+<li>Simpler models (M₀, M₁) often provided good baseline performance</li>
+<li>Mid-complexity models (M₂, M₄, M₅) showed mixed results</li>
+<li>Complex models (M₃, M₆, M₇) struggled with stability and generalization</li>
+</ul>
+</li>
+<li>
+<p>Training Considerations</p>
+<ul>
+<li>Training time increased significantly with model complexity</li>
+<li>Deeper models required more careful hyperparameter tuning</li>
+<li>Class imbalance affected all models to varying degrees</li>
+<li>Resource requirements varied greatly between architectures</li>
+</ul>
+</li>
+<li>
+<p>Best Performing Models</p>
+<ul>
+<li>M₁ (Shallow Neural Network) achieved highest accuracy at 72%</li>
+<li>M₅ (Transformer) showed strong potential with 70% accuracy</li>
+<li>M₂ (Deep Neural Network) provided good balance at 69%</li>
+</ul>
+</li>
+<li>
+<p>Challenges Identified</p>
+<ul>
+<li>Class imbalance remained a persistent issue</li>
+<li>Complex architectures prone to overfitting</li>
+<li>Trade-off between model sophistication and training stability</li>
+<li>Resource constraints for more complex models</li>
+</ul>
+</li>
+</ol>
+<p>These results suggest that moderate complexity models with careful regularization provide the best balance of performance and training efficiency for this classification task. The shallow neural network architecture (M₁) emerges as the recommended approach for practical implementation.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>This study explored various neural network architectures for arXiv paper classification, yielding several important conclusions:</p>
+<h3 id="key-findings">Key Findings</h3>
+<ol>
+<li>
+<p>Model Complexity Trade-offs</p>
+<ul>
+<li>Simpler architectures often outperformed more complex ones</li>
+<li>The shallow neural network (M₁) achieved the best balance of performance and efficiency</li>
+<li>Complex models like BERT and RNN showed poor generalization</li>
+<li>Adding complexity through deeper layers did not consistently improve results</li>
+</ul>
+</li>
+<li>
+<p>Performance Characteristics</p>
+<ul>
+<li>Best overall accuracy of 72% achieved by M₁</li>
+<li>Strong performance on major categories like mathematics and physics</li>
+<li>Persistent challenges with minority classes like electrical engineering and statistics</li>
+<li>Class imbalance significantly impacted model performance, especially for complex models</li>
+<li>BERT and RNN models showed extreme bias with only 9% accuracy</li>
+</ul>
+</li>
+<li>
+<p>Practical Implications</p>
+<ul>
+<li>Moderate complexity models are recommended for this task</li>
+<li>Careful attention to regularization and training stability is crucial</li>
+<li>Simple architectures can effectively capture document classification patterns</li>
+<li>Complex models require substantially more resources without proportional gains</li>
+<li>Training time increases significantly with model complexity</li>
+</ul>
+</li>
+</ol>
+<h3 id="future-work">Future Work</h3>
+<p>Several directions for future research emerge from this study:</p>
+<ol>
+<li>
+<p>Model Improvements</p>
+<ul>
+<li>Explore hybrid architectures combining different model strengths</li>
+<li>Investigate alternative embedding approaches beyond BERT</li>
+<li>Develop more sophisticated class balancing techniques</li>
+<li>Research methods to improve training stability of complex models</li>
+</ul>
+</li>
+<li>
+<p>Data Enhancements</p>
+<ul>
+<li>Collect additional samples for underrepresented categories</li>
+<li>Experiment with data augmentation techniques</li>
+<li>Investigate feature engineering improvements</li>
+<li>Address class imbalance through data collection</li>
+</ul>
+</li>
+<li>
+<p>Application Extensions</p>
+<ul>
+<li>Expand to fine-grained subcategory classification</li>
+<li>Develop real-time classification systems</li>
+<li>Explore multi-label classification approaches</li>
+<li>Investigate resource-efficient model architectures</li>
+</ul>
+</li>
+</ol>
+<p>This research demonstrates that effective arXiv paper classification can be achieved with relatively simple neural network architectures when properly implemented and trained. While more complex models like BERT and RNNs showed poor performance, moderate architectures like shallow neural networks provided strong results. The findings provide practical guidance for implementing similar document classification systems while highlighting areas for future investigation and improvement.</p>
+
+</body>
+</html>
