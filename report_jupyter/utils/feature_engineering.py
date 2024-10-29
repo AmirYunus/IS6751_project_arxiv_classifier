@@ -8,6 +8,7 @@ from transformers import BertTokenizer, BertModel
 
 # PyTorch for deep learning
 import torch
+import torch.nn as nn
 
 # Text processing
 import re
@@ -25,9 +26,13 @@ from sklearn.preprocessing import MinMaxScaler
 def __get_device() -> torch.device:
     """
     Determine the best available device for computation.
-    Returns CUDA if available, else MPS if available, else CPU.
+    Returns CUDA if available with DataParallel for multiple GPUs,
+    else MPS if available, else CPU.
     """
     if torch.cuda.is_available():
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs!")
+            return torch.device("cuda")
         return torch.device("cuda")
     elif torch.backends.mps.is_available():
         return torch.device("mps")
@@ -37,6 +42,8 @@ def __get_device() -> torch.device:
 def __load_bert_model(model_name: str):
     tokenizer = BertTokenizer.from_pretrained(model_name)
     model = BertModel.from_pretrained(model_name)
+    if torch.cuda.is_available() and torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
     return tokenizer, model
 
 def __process_text_column(column: pd.Series, process_func: callable, batch_size: int) -> pd.Series:
