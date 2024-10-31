@@ -1,4 +1,6 @@
-# Arxiv Classification Project Report
+# Automated Scientific Paper Classification: A Machine Learning Approach to arXiv Category Prediction
+Automated Classification of Scientific Papers Using Machine Learning: A Study of arXiv Categories
+
 
 ## Abstract
 This report presents an automated classification system for categorizing arXiv scientific papers across eight major disciplines using machine learning techniques. Working with a dataset of over 860,000 papers (sampled to 59,000 for computational feasibility), we developed models to classify papers into Physics, Mathematics, Computer Science, Quantitative Biology, Statistics, Electrical Engineering, Quantitative Finance, and Economics categories. Our methodology covers the complete machine learning pipeline from data collection through model evaluation, aiming to enhance academic information management by improving paper organization and discovery, ultimately facilitating interdisciplinary research and literature navigation in an increasingly complex scientific landscape.
@@ -15,21 +17,11 @@ This report presents our comprehensive approach to building and evaluating such 
 
 
 ## Data Scraping
-Original dataset size: 863,251
-Sample dataset size due to computational constraints: 58816
-- Train: 37142
-- Validation: 15795
-- Test: 5879
+Our initial dataset comprised 863,251 scientific papers from arXiv. However, due to computational constraints, we sampled this down to a more manageable size of 58,816 papers. This sampled dataset was then split into training, validation, and test sets containing 37,142, 15,795, and 5,879 papers respectively, following standard machine learning practices for model development and evaluation.
 
-Class Distribution:
-- Physics: 26674
-- Mathematics: 13794
-- Computer Science: 12680
-- Quantitative Biology: 1861
-- Statistics: 1341
-- Electrical Engineering: 1337
-- Quantitative Finance: 821
-- Economics: 308
+The class distribution across the eight scientific disciplines showed considerable variation. Physics papers formed the largest category with 26,674 papers, followed by Mathematics and Computer Science with 13,794 and 12,680 papers respectively. The remaining categories had significantly smaller representations: Quantitative Biology contained 1,861 papers, Statistics had 1,341 papers, and Electrical Engineering included 1,337 papers. The smallest categories were Quantitative Finance and Economics, with 821 and 308 papers respectively.
+
+This imbalanced distribution reflects the historical development and relative sizes of different research communities on arXiv, which originated primarily as a physics preprint server before expanding to other fields. The significant class imbalance presented an important consideration for our modeling approach, requiring careful handling to ensure fair treatment of minority classes during classification.
 
 ### Data Collection
 The data collection process was conducted using the `arxiv` Python package to interface with the arXiv API. This package provided a robust and efficient way to programmatically access the vast repository of scientific papers hosted on arXiv. The package's implementation handled rate limiting and connection management, allowing us to reliably collect data at scale.
