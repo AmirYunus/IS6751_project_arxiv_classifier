@@ -1,7 +1,7 @@
 # Data manipulation and analysis
 import pandas as pd
 import numpy as np
-
+import pickle
 # PyTorch
 import torch
 
@@ -128,7 +128,7 @@ def __balance_dataset(split_df):
 
 def save_model(model: torch.nn.Module, file_path: str) -> None:
     """
-    Save a PyTorch model to disk.
+    Save a PyTorch model to disk using pickle.
     
     Args:
         model (torch.nn.Module): The PyTorch model to save
@@ -137,5 +137,21 @@ def save_model(model: torch.nn.Module, file_path: str) -> None:
     Returns:
         None
     """
-    torch.save(model.state_dict(), file_path)
+    with open(file_path, 'wb') as f:
+        pickle.dump(model, f)
     print(f"Model saved successfully to {file_path}")
+
+def load_model(file_path: str) -> torch.nn.Module:
+    """
+    Load a PyTorch model from disk using pickle.
+    
+    Args:
+        file_path (str): Path to the saved model file
+        
+    Returns:
+        torch.nn.Module: The loaded PyTorch model
+    """
+    with open(file_path, 'rb') as f:
+        model = pickle.load(f)
+    print(f"Model loaded successfully from {file_path}")
+    return model

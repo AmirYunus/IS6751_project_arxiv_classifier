@@ -62,7 +62,7 @@
 
 5. Download NLTK stopwords and punkt:
    ```
-   python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt')"
+   python -c "import nltk; nltk.download('stopwords'); nltk.download('punkt_tab')"
    ```
 
 6. Install Visual Studio Community 2022 (Windows only):
