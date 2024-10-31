@@ -19,7 +19,16 @@ This report presents our comprehensive approach to building and evaluating such 
 ## Data Scraping
 Our initial dataset comprised 863,251 scientific papers from arXiv. However, due to computational constraints, we sampled this down to a more manageable size of 58,816 papers. This sampled dataset was then split into training, validation, and test sets containing 37,142, 15,795, and 5,879 papers respectively, following standard machine learning practices for model development and evaluation.
 
-The class distribution across the eight scientific disciplines showed considerable variation. Physics papers formed the largest category with 26,674 papers, followed by Mathematics and Computer Science with 13,794 and 12,680 papers respectively. The remaining categories had significantly smaller representations: Quantitative Biology contained 1,861 papers, Statistics had 1,341 papers, and Electrical Engineering included 1,337 papers. The smallest categories were Quantitative Finance and Economics, with 821 and 308 papers respectively.
+| Category | Number of Papers |
+|----------|-----------------|
+| Physics | 26,674 |
+| Mathematics | 13,794 |
+| Computer Science | 12,680 |
+| Quantitative Biology | 1,861 |
+| Statistics | 1,341 |
+| Electrical Engineering | 1,337 |
+| Quantitative Finance | 821 |
+| Economics | 308 |
 
 This imbalanced distribution reflects the historical development and relative sizes of different research communities on arXiv, which originated primarily as a physics preprint server before expanding to other fields. The significant class imbalance presented an important consideration for our modeling approach, requiring careful handling to ensure fair treatment of minority classes during classification.
 
@@ -166,63 +175,71 @@ These variations in text length metrics provide valuable insights into the commu
 
 
 ### Word Frequency Analysis
-Below are the top 5 most frequent words in each category:
+Word frequency analysis reveals distinctive patterns in vocabulary usage across different academic disciplines. After removing common stop words, we identified the most frequently occurring terms in each category's papers. This analysis provides insights into the key concepts, methodologies, and focus areas that characterize each field. Below are the top 5 most frequent words in each category, highlighting the unique linguistic patterns and terminology preferences:
 
-Physics:
-- model 11768
-- results 8395
-- using 7810
-- two 7509
-- field 7308
+| Physics | Frequency |
+|---------|-----------|
+| model | 11768 |
+| results | 8395 |
+| using | 7810 |
+| two | 7509 |
+| field | 7308 |
 
-Mathematics:
-- paper 4551
-- show 4448
-- also 3795
-- prove 3765
-- space 3538
+| Mathematics | Frequency |
+|-------------|-----------|
+| paper | 4551 |
+| show | 4448 |
+| also | 3795 |
+| prove | 3765 |
+| space | 3538 |
 
-Electrical Engineering and Systems Science:
-- proposed 1119
-- model 965
-- system 818
-- paper 791
-- using 751
+| Electrical Engineering and Systems Science | Frequency |
+|------------------------------------------|-----------|
+| proposed | 1119 |
+| model | 965 |
+| system | 818 |
+| paper | 791 |
+| using | 751 |
 
-Computer Science:
-- data 7468
-- paper 6730
-- model 5703
-- using 5028
-- problem 4980
+| Computer Science | Frequency |
+|-----------------|-----------|
+| data | 7468 |
+| paper | 6730 |
+| model | 5703 |
+| using | 5028 |
+| problem | 4980 |
 
-Quantitative Biology:
-- model 1614
-- data 1022
-- using 717
-- results 705
-- networks 702
+| Quantitative Biology | Frequency |
+|--------------------|-----------|
+| model | 1614 |
+| data | 1022 |
+| using | 717 |
+| results | 705 |
+| networks | 702 |
 
-Economics:
-- model 205
-- data 146
-- economic 143
-- paper 129
-- models 121
+| Economics | Frequency |
+|-----------|-----------|
+| model | 205 |
+| data | 146 |
+| economic | 143 |
+| paper | 129 |
+| models | 121 |
 
-Statistics:
-- data 1658
-- model 1279
-- models 851
-- methods 792
-- method 715
+| Statistics | Frequency |
+|------------|-----------|
+| data | 1658 |
+| model | 1279 |
+| models | 851 |
+| methods | 792 |
+| method | 715 |
 
-Quantitative Finance:
-- model 797
-- market 638
-- financial 457
-- price 454
-- risk 437
+| Quantitative Finance | Frequency |
+|--------------------|-----------|
+| model | 797 |
+| market | 638 |
+| financial | 457 |
+| price | 454 |
+| risk | 437 |
 
 The analysis of top words across different scientific categories reveals fascinating patterns about the focus and methodological approaches in each field.
 
@@ -250,6 +267,8 @@ These patterns reflect the evolving nature of scientific research, where traditi
 #### Word Cloud Visualisation
 
 ### N-Gram Analysis
+N-gram analysis provides deeper insights into how words are commonly used together in scientific texts across different fields. By examining frequent word combinations (2-grams, 3-grams, and 4-grams), we can better understand the key concepts, methodologies, and research focuses within each discipline. This analysis reveals common phrases and terminology that characterize the discourse in each field. Below, we present the most frequent n-grams for each scientific category, starting with Physics.
+
 #### Physics
 2-Grams
 | Phrase | Frequency |
@@ -1067,6 +1086,8 @@ Examining the 5-grams provides more detailed insights into specific research are
 The presence of terms related to deep reinforcement learning and behavioral analysis suggests an emerging focus on advanced algorithmic trading strategies and market behavior studies. Additionally, the appearance of agricultural commodity-related terms ("wheat maize soyabeans rice") indicates research interest in commodity markets and their dynamics.
 
 ### Topic Modelling
+The topic modeling analysis for Quantitative Finance reveals several distinct research themes and methodological approaches within the field. Using Latent Dirichlet Allocation (LDA), we identified 5 main topics from the paper summaries, each representing different aspects of quantitative finance research. The analysis provides insights into the current research focus areas, methodological preferences, and emerging trends in the field. Below are the detailed findings for each topic, along with their relative prevalence in the corpus.
+
 
 #### Physics
 Analyzing 'summary' column
@@ -1266,6 +1287,10 @@ The distribution of documents across these topics shows a primary focus on finan
 
 
 ### Named Entity Recognition (NER)
+The Named Entity Recognition (NER) analysis across different scientific fields reveals distinct patterns in how various types of entities are used in research papers. This analysis helps understand the characteristic ways that different disciplines reference and discuss entities like numbers, organizations, people, and concepts. By examining the most common named entities in each field, we can gain insights into the writing styles, methodological approaches, and key focus areas that define different academic disciplines.
+
+The following sections present detailed NER analyses for Physics and Mathematics, highlighting both the commonalities and unique characteristics in how these fields employ different types of entities in their research communications. This analysis provides an interesting lens through which to understand the linguistic and conceptual frameworks that shape scientific discourse in these fields.
+
 
 #### Physics
 Analyzing 'summary' column:
@@ -1506,49 +1531,84 @@ Overall, the sentiment scores across all disciplines remain relatively close to 
 
 ## Feature Engineering
 
-The feature engineering phase focused on extracting meaningful features from the text data to support the classification task. Several techniques were applied:
+Feature engineering plays a crucial role in transforming raw text data into structured numerical features that machine learning models can effectively process. In this study, we implemented a comprehensive feature engineering pipeline that combines traditional NLP techniques with modern deep learning approaches to capture both semantic and statistical characteristics of the scientific papers. The following sections detail the various feature extraction and transformation techniques applied:
 
 ### Tokenise and Lemmatise using BERT
+The tokenization and lemmatization process was implemented using BERT (Bidirectional Encoder Representations from Transformers), leveraging its advanced contextual understanding of text. This approach offers several advantages over traditional lemmatization methods:
+
+First, BERT's bidirectional nature allows it to consider the full context when processing each word, leading to more accurate lemmatization that accounts for word sense and usage. The model processes text through its transformer architecture, which helps maintain semantic relationships while reducing words to their base forms.
+
+The implementation handles text processing in batches to optimize computational efficiency, with automatic memory management for CUDA-enabled systems. This batch processing approach allows for efficient processing of large text corpora while maintaining consistent quality. The system automatically adapts to available computational resources, utilizing GPU acceleration when available and gracefully falling back to CPU processing when necessary.
+
+Special attention was paid to maintaining text integrity during processing. The system preserves important linguistic features while removing unnecessary tokens and standardizing text representation. This preprocessing step was applied to all text fields (titles, summaries, comments, and author lists) to ensure consistent treatment across the dataset.
+
+The lemmatization process helps reduce vocabulary size and standardize word forms, making subsequent analysis more reliable. This is particularly important for scientific text, where technical terms and their variants need to be properly normalized while preserving their semantic meaning.
+
 
 ### Vectorise using BERT
+Text vectorization was implemented using BERT embeddings to capture rich semantic representations of the scientific papers. The vectorization process transforms text into high-dimensional numerical vectors that encode contextual meaning and relationships between words.
+
+The implementation uses the 'bert-base-uncased' model to generate embeddings for each text field (titles, summaries, comments, and author lists). BERT's transformer architecture processes text bidirectionally, allowing it to capture complex contextual relationships and nuances in scientific writing. The model generates 768-dimensional vectors for each text input, providing a dense representation of semantic content.
+
+The vectorization process includes several optimizations for handling large datasets. Batch processing is implemented to efficiently handle large volumes of text, while automatic memory management enables GPU acceleration when available. The system gracefully falls back to CPU processing when needed, ensuring reliable processing regardless of hardware constraints. Additionally, truncation and padding mechanisms are employed to properly handle variable-length inputs, maintaining consistent vector dimensions across all samples.
+
+Special attention was paid to maintaining consistent vector representations across different text fields. The process handles missing or malformed text appropriately, ensuring robust feature generation even with imperfect input data. The resulting embeddings capture both local syntactic patterns and broader semantic relationships in the scientific text.
+
+These BERT embeddings provide a rich foundation for downstream machine learning tasks, encoding complex relationships between scientific concepts, methodologies, and findings. The high-dimensional nature of these vectors allows the capture of subtle variations in meaning that are particularly important in distinguishing between different scientific disciplines.
+
 
 ### Word Count
+Word count analysis was performed on all text fields (titles, summaries, comments, and author lists) to quantify text length and verbosity. The implementation processes text in efficient batches of 1000 samples, splitting text on whitespace to count individual words.
+
+For each text field, a new feature column is created containing the raw word count. This provides a basic but important metric of text length that can help distinguish between different types of scientific papers. For example, theoretical papers may tend toward longer, more detailed summaries compared to experimental papers.
+
+The word counting process incorporates several robustness features to ensure reliable processing. The system automatically handles non-string inputs by converting them to strings before processing, and properly manages empty or malformed text to prevent errors. To maintain consistency, the counting methodology is standardized across all text fields in the dataset. Additionally, the implementation optimizes performance through batch processing, allowing efficient handling of large volumes of text data.
+
+While simple compared to semantic analysis, word counts provide valuable signals about paper structure and writing style. They can reveal patterns in how different scientific disciplines structure their abstracts and summaries, potentially helping distinguish between fields that favor concise versus detailed descriptions.
+
+The word count features complement the more sophisticated semantic features by providing explicit quantification of text length. This can be particularly useful when combined with complexity metrics and semantic embeddings to build a complete picture of paper characteristics.
+
 
 ### Named Entity Recognition (NER)
-Applied spaCy's NER model to identify and count entity types:
-- Person names
-- Organizations
-- Locations
-- Dates
-- Scientific concepts
-- Other named entities
+Named Entity Recognition was implemented using spaCy's pre-trained "en_core_web_sm" model to identify and quantify different types of entities in the text. The implementation processes text in batches of 100 samples for optimal performance, analyzing all text fields including titles, summaries, comments, and author lists.
 
-Entity counts provide insights into the content focus and domain-specific terminology.
+For each text field, the system identifies and counts entities across multiple categories including person names, organizations, locations, dates, and other domain-specific entities. The NER process creates separate count features for each entity type, allowing for fine-grained analysis of the content focus. This batch processing approach ensures efficient handling of large text volumes while maintaining consistent entity recognition quality.
+
+The implementation includes robust error handling and type conversion, automatically converting all text to strings before processing. Entity counts are aggregated per document and stored in dedicated columns following a standardized naming convention (e.g., 'title_ner_PERSON_count', 'summary_ner_ORG_count'). This structured approach enables detailed analysis of how different scientific disciplines use various types of named entities in their papers.
+
+The entity recognition provides valuable insights into the domain-specific terminology and focus areas of different scientific fields. For example, it can reveal patterns in how frequently papers reference specific organizations, locations, or key figures in their field. These entity patterns serve as important features for distinguishing between different scientific disciplines, complementing the semantic and statistical features extracted through other methods.
 
 ### Sentiment Analysis 
-Calculated sentiment polarity scores (-1 to 1) for:
-- Title sentiment
-- Summary sentiment
-- Comment sentiment
-- Author sentiment
+Sentiment analysis was performed using TextBlob to calculate polarity scores ranging from -1 (negative) to 1 (positive) for all text fields in the dataset. The implementation processes text in batches of 1000 samples for efficient computation, analyzing titles, summaries, comments, and author lists.
 
-While scientific papers tend to be neutral, subtle sentiment variations may correlate with paper categories.
+For each text field, the system calculates a sentiment polarity score that captures the overall emotional tone of the text. The process automatically handles text preprocessing by converting all inputs to strings before analysis. The sentiment scores are stored in dedicated columns following a standardized naming convention (e.g., 'title_sentiment', 'summary_sentiment').
+
+While scientific papers generally aim for neutral and objective language, subtle variations in sentiment can provide valuable signals for classification. For example, certain fields may tend toward more positive language when describing results, while others maintain stricter neutrality. The sentiment features complement the semantic and statistical features by capturing these subtle emotional undertones in scientific writing.
+
+The implementation includes robust error handling and parallel processing optimizations through the TOKENIZERS_PARALLELISM environment variable. This ensures reliable and efficient sentiment analysis even with large volumes of text data. The resulting sentiment scores provide an additional dimension for distinguishing between different scientific disciplines based on their characteristic writing styles and emotional expression patterns.
 
 ### Text Complexity Metrics
-Computed Automated Readability Index (ARI) scores for:
-- Title complexity
-- Summary complexity
-- Comment complexity
-- Author complexity
+Text complexity analysis was performed using the Automated Readability Index (ARI) to quantify the sophistication level of all text fields in the dataset. The implementation processes text in batches of 1000 samples, analyzing titles, summaries, comments, and author lists.
 
-ARI scores range from 1-14 and indicate text sophistication level.
+For each text field, the system calculates an ARI score based on character count, word count, and sentence count using the formula: 4.71 * (characters/words) + 0.5 * (words/sentences) - 21.43. The scores are bounded between 1 and 14, with higher scores indicating more complex text. The implementation includes robust handling of edge cases, such as texts with no sentence-ending punctuation, and automatically converts all inputs to strings before analysis.
+
+The ARI scores provide valuable insights into the linguistic complexity patterns across different scientific disciplines. For example, certain fields may consistently use more complex language in their titles or summaries compared to others. The implementation creates separate complexity features for each text field (e.g., 'title_ari', 'summary_ari'), enabling detailed analysis of how writing complexity varies across different parts of scientific papers.
+
+These complexity metrics complement the semantic and statistical features by providing explicit quantification of text sophistication. When combined with other features like word counts and entity recognition, they help build a comprehensive picture of the writing styles characteristic of different scientific fields.
 
 ### Feature Normalization
-Applied Min-Max scaling to normalize all numerical features to [0,1] range for consistent model input.
+Feature normalization was implemented using scikit-learn's MinMaxScaler to transform all numerical features to a consistent [0,1] range. The normalization process excludes the categorical target variable ('category') and split designation columns to preserve their original values. This scaling ensures that all numerical features contribute proportionally to model training, preventing features with larger absolute values from dominating the learning process.
 
-The final feature set combines dense semantic embeddings with interpretable text metrics, providing a rich representation for the classification models. All features were carefully normalized and validated to ensure quality and consistency.
+The implementation automatically identifies numerical columns by their data type (int64 or float64) and applies the scaler transformation. The MinMaxScaler preserves zero values and the shape of the original distribution while bounding all values between 0 and 1. This normalization is particularly important for our feature set which combines dense BERT embeddings (768 dimensions per text field) with scalar metrics like word counts, entity counts, sentiment scores, and readability indices that exist on very different scales.
+
+The final feature set provides a rich representation of each paper, combining normalized semantic embeddings that capture complex meaning with interpretable metrics that quantify specific textual characteristics. The careful normalization process ensures that all features contribute meaningfully to the classification task while maintaining their relative relationships. The scaler object is preserved to enable consistent transformation of new data during model deployment.
 
 ## Experimentation (1st Run)
+The initial experimental phase evaluated seven different model architectures on the original dataset to establish baseline performance metrics and identify promising approaches. The models ranged from simple linear classifiers to complex deep neural networks, allowing us to assess the relationship between model complexity and classification performance.
+
+The experiments were conducted using a standardized training pipeline with consistent hyperparameters across models where applicable. All models were trained on the same feature set, including the BERT embeddings, word counts, entity counts, sentiment scores, and complexity metrics described in previous sections. The training process utilized early stopping with a patience of 5 epochs to prevent overfitting, and model checkpointing to save the best performing weights based on validation loss.
+
+Each model was evaluated using stratified 5-fold cross-validation to ensure robust performance assessment across different data splits. The evaluation metrics include accuracy, precision, recall, and F1-score, calculated both as weighted averages (accounting for class imbalance) and macro averages (treating all classes equally). This comprehensive evaluation framework allows for detailed comparison of model performance across different aspects of the classification task.
 
 The following table provides a comparative summary of the performance of all seven models evaluated in this study. The metrics include accuracy, and weighted averages of precision, recall, and F1-score.
 
@@ -1591,14 +1651,16 @@ The Convolutional Neural Network ($M_4$) showed moderate but promising performan
 
 The selection criteria for these models encompassed multiple factors including overall performance metrics (accuracy, precision, recall, F1-score), computational efficiency, model simplicity, interpretability, and potential for improvement with balanced data. By choosing a mix of simple (Logistic Regression), moderate (Shallow ANN), and complex (CNN) architectures, we aimed to provide a comprehensive evaluation framework for the balanced dataset phase of our experiment.
 
-## Balanced Dataset Preparation
-Total Observations: 21152
-- Train: 13264
-- Validation: 5768
-- Test: 2120
-Observations per category 2644
+## Dataset Balancing and Preparation for Second Experimental Phase
+After analyzing the results from the first experimental phase, we identified class imbalance as a significant factor affecting model performance. To address this, we performed comprehensive dataset balancing using the preprocessing and feature engineering pipelines developed in our initial phase.
 
-Performed preprocessing and feature engineering just like the original dataset.
+The data preprocessing pipeline included several key steps. First, we performed text cleaning and normalization, followed by lowercasing of all text fields. We then removed special characters and numbers from the text, standardized the text encoding to UTF-8, and performed tokenization of all text fields.
+
+Following the preprocessing steps, we applied our feature engineering pipeline to extract meaningful features from the data. We generated BERT embeddings for the title, summary, comment, and author fields. We also calculated word count statistics and Named Entity Recognition (NER) counts. Additionally, we performed sentiment analysis to generate sentiment scores and computed text complexity metrics using ARI scores.
+
+These preprocessing and feature engineering steps were carefully maintained from the first experimental phase to ensure consistency and comparability of results. The key difference in this phase was the implementation of balanced sampling to address the class distribution issues identified earlier.
+
+The balanced dataset consisted of 21,152 total observations, which were split into 13,264 training samples, 5,768 validation samples, and 2,120 test samples. Each category contained exactly 2,644 observations to ensure balanced representation across classes.
 
 To ensure a fair comparison between models, we carefully balanced the dataset using random undersampling. This technique was chosen over oversampling methods to avoid potential overfitting that could arise from synthetic data generation. The balanced dataset contains 21,152 total observations, with exactly 2,644 samples per category, ensuring equal representation across all classes.
 
@@ -1606,16 +1668,17 @@ The dataset was split into training (62.7%), validation (27.3%), and test (10%) 
 
 The preprocessing pipeline remained consistent with the original dataset to maintain comparability of results. This included standardization of numerical features, encoding of categorical variables, and handling of missing values. Feature engineering steps were also kept identical to ensure that any performance improvements could be attributed to the balanced data rather than changes in the feature space.
 
-The balanced dataset preparation phase was crucial for addressing the class imbalance issues identified in the first experimental run. By equalizing the class distributions, we aimed to:
-1. Reduce bias towards majority classes
-2. Improve model performance on minority classes
-3. Make macro and weighted metrics more directly comparable
-4. Provide a more reliable evaluation of each model's true discriminative capabilities
+The balanced dataset preparation phase was crucial for addressing the class imbalance issues identified in the first experimental run. By equalizing the class distributions, we aimed to reduce bias towards majority classes and improve model performance on minority classes. This balancing also made macro and weighted metrics more directly comparable, allowing for better assessment of model performance across all classes. Additionally, the balanced dataset provided a more reliable evaluation of each model's true discriminative capabilities by ensuring all classes were equally represented in the training data.
 
 This balanced dataset served as the foundation for our second experimental run, allowing us to evaluate whether the selected models could achieve better performance when trained on equally represented classes.
 
 
 ## Experimentation (2nd Run)
+In the second experimental run, we evaluated the three selected models (Logistic Regression, Shallow ANN, and CNN) on the balanced dataset. This phase aimed to assess whether addressing the class imbalance would lead to improved model performance and more consistent results across classes.
+
+Each model was trained using identical preprocessing and feature engineering pipelines from the first run, with the key difference being the balanced training data. We maintained consistent hyperparameter settings from the first experimental phase to isolate the effects of data balancing on model performance.
+
+The balanced dataset provided equal representation across all classes, allowing us to better evaluate each model's true discriminative capabilities without the bias introduced by class imbalance. This setup also enabled more meaningful comparisons between macro and weighted metrics, as the balanced class distribution meant these metrics should theoretically converge.
 
 The following table provides a comparative summary of the performance of all seven models evaluated in this study. The metrics include accuracy, and weighted averages of precision, recall, and F1-score.
 
@@ -1638,101 +1701,17 @@ A particularly interesting observation is the convergence of weighted and macro 
 
 
 ## Experimentation (3rd Run)
-Performed hyperparameter search:
- - hidden_dims = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1_024, 2_056]
- - learning_rates = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
+Building upon the insights gained from the second experimental run, we conducted a third phase focused on optimizing the neural network architecture through extensive hyperparameter tuning. This phase aimed to identify the optimal model configuration that could further improve upon the strong performance achieved with the balanced dataset.
+
+The hyperparameter search focused on two critical aspects of neural network design: the hidden layer dimensions and learning rates. These parameters were chosen for optimization as they significantly impact both the model's capacity to learn complex patterns and its training dynamics. By conducting a comprehensive grid search across these parameters, we aimed to find the configuration that would maximize the model's discriminative power while maintaining stable training.
+
+This experimental phase maintained the same balanced dataset and preprocessing pipeline from the second run to ensure valid comparisons. The key difference was the systematic exploration of the hyperparameter space to find the optimal model architecture.
 
 For the third experimental run, we conducted an extensive hyperparameter search to optimize the neural network architecture. We explored a wide range of hidden layer dimensions, from very small (2 neurons) to very large (2,056 neurons), allowing us to understand how the model's capacity affects its performance. The hidden dimensions tested were: 2, 4, 8, 16, 32, 64, 128, 256, 512, 1,024, and 2,056 neurons.
 
 Additionally, we investigated the impact of different learning rates, spanning seven orders of magnitude from 1e-7 to 1e-1. This broad range enabled us to find the sweet spot between convergence speed and stability. The learning rates tested were: 0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, and 0.0000001.
 
-The grid search was performed using validation loss as the primary metric for model selection. Each combination of hidden dimension and learning rate was evaluated, resulting in 77 different model configurations. The models were trained using the same balanced dataset from the second experimental run to maintain consistency and comparability.
-
-Grid search results
-Grid Search Results:
---------------------------------------------------
-hidden_dim: 256, learning_rate: 0.001, val_loss: 1.5293
-hidden_dim: 128, learning_rate: 0.001, val_loss: 1.5434
-hidden_dim: 512, learning_rate: 0.001, val_loss: 1.5449
-hidden_dim: 128, learning_rate: 0.01, val_loss: 1.5499
-hidden_dim: 64, learning_rate: 0.01, val_loss: 1.6021
-hidden_dim: 64, learning_rate: 0.001, val_loss: 1.6084
-hidden_dim: 2056, learning_rate: 0.0001, val_loss: 1.6123
-hidden_dim: 32, learning_rate: 0.001, val_loss: 1.6418
-hidden_dim: 1024, learning_rate: 0.0001, val_loss: 1.6513
-hidden_dim: 16, learning_rate: 0.01, val_loss: 1.6834
-hidden_dim: 16, learning_rate: 0.001, val_loss: 1.6909
-hidden_dim: 512, learning_rate: 0.0001, val_loss: 1.6964
-hidden_dim: 1024, learning_rate: 0.001, val_loss: 1.7233
-hidden_dim: 256, learning_rate: 0.0001, val_loss: 1.7730
-hidden_dim: 8, learning_rate: 0.001, val_loss: 1.8112
-hidden_dim: 128, learning_rate: 0.0001, val_loss: 1.8372
-hidden_dim: 256, learning_rate: 0.01, val_loss: 1.8673
-hidden_dim: 64, learning_rate: 0.0001, val_loss: 1.8806
-hidden_dim: 4, learning_rate: 0.001, val_loss: 1.8977
-hidden_dim: 2056, learning_rate: 1e-05, val_loss: 1.9417
-hidden_dim: 32, learning_rate: 0.0001, val_loss: 1.9528
-hidden_dim: 32, learning_rate: 0.01, val_loss: 1.9650
-hidden_dim: 2056, learning_rate: 0.001, val_loss: 1.9691
-hidden_dim: 1024, learning_rate: 1e-05, val_loss: 1.9782
-hidden_dim: 512, learning_rate: 1e-05, val_loss: 2.0105
-hidden_dim: 16, learning_rate: 0.0001, val_loss: 2.0121
-hidden_dim: 256, learning_rate: 1e-05, val_loss: 2.0367
-hidden_dim: 8, learning_rate: 0.0001, val_loss: 2.0370
-hidden_dim: 1024, learning_rate: 0.01, val_loss: 2.0469
-hidden_dim: 128, learning_rate: 1e-05, val_loss: 2.0487
-hidden_dim: 4, learning_rate: 0.0001, val_loss: 2.0499
-hidden_dim: 64, learning_rate: 1e-05, val_loss: 2.0577
-hidden_dim: 16, learning_rate: 0.1, val_loss: 2.0666
-hidden_dim: 2, learning_rate: 0.0001, val_loss: 2.0688
-hidden_dim: 2, learning_rate: 0.001, val_loss: 2.0727
-hidden_dim: 32, learning_rate: 0.1, val_loss: 2.0746
-hidden_dim: 1024, learning_rate: 1e-06, val_loss: 2.0785
-hidden_dim: 32, learning_rate: 1e-05, val_loss: 2.0788
-hidden_dim: 256, learning_rate: 1e-06, val_loss: 2.0790
-hidden_dim: 64, learning_rate: 1e-06, val_loss: 2.0791
-hidden_dim: 1024, learning_rate: 1e-07, val_loss: 2.0792
-hidden_dim: 8, learning_rate: 1e-06, val_loss: 2.0793
-hidden_dim: 512, learning_rate: 1e-06, val_loss: 2.0794
-hidden_dim: 256, learning_rate: 1e-07, val_loss: 2.0794
-hidden_dim: 16, learning_rate: 1e-05, val_loss: 2.0795
-hidden_dim: 2, learning_rate: 0.1, val_loss: 2.0795
-hidden_dim: 16, learning_rate: 1e-06, val_loss: 2.0795
-hidden_dim: 2056, learning_rate: 1e-06, val_loss: 2.0795
-hidden_dim: 128, learning_rate: 1e-07, val_loss: 2.0796
-hidden_dim: 16, learning_rate: 1e-07, val_loss: 2.0796
-hidden_dim: 512, learning_rate: 1e-07, val_loss: 2.0797
-hidden_dim: 4, learning_rate: 1e-05, val_loss: 2.0798
-hidden_dim: 4, learning_rate: 0.01, val_loss: 2.0798
-hidden_dim: 2056, learning_rate: 1e-07, val_loss: 2.0798
-hidden_dim: 8, learning_rate: 1e-05, val_loss: 2.0798
-hidden_dim: 32, learning_rate: 1e-06, val_loss: 2.0799
-hidden_dim: 4, learning_rate: 1e-07, val_loss: 2.0799
-hidden_dim: 32, learning_rate: 1e-07, val_loss: 2.0800
-hidden_dim: 128, learning_rate: 1e-06, val_loss: 2.0800
-hidden_dim: 4, learning_rate: 1e-06, val_loss: 2.0800
-hidden_dim: 64, learning_rate: 1e-07, val_loss: 2.0802
-hidden_dim: 2, learning_rate: 1e-05, val_loss: 2.0803
-hidden_dim: 2, learning_rate: 0.01, val_loss: 2.0806
-hidden_dim: 2, learning_rate: 1e-06, val_loss: 2.0806
-hidden_dim: 8, learning_rate: 1e-07, val_loss: 2.0806
-hidden_dim: 2, learning_rate: 1e-07, val_loss: 2.0818
-hidden_dim: 512, learning_rate: 0.1, val_loss: 2.0966
-hidden_dim: 64, learning_rate: 0.1, val_loss: 2.1060
-hidden_dim: 128, learning_rate: 0.1, val_loss: 2.1400
-hidden_dim: 4, learning_rate: 0.1, val_loss: 2.1490
-hidden_dim: 1024, learning_rate: 0.1, val_loss: 2.1490
-hidden_dim: 2056, learning_rate: 0.01, val_loss: 2.1490
-hidden_dim: 8, learning_rate: 0.1, val_loss: 2.1490
-hidden_dim: 8, learning_rate: 0.01, val_loss: 2.1490
-hidden_dim: 256, learning_rate: 0.1, val_loss: 2.1490
-hidden_dim: 512, learning_rate: 0.01, val_loss: 2.1490
-hidden_dim: 2056, learning_rate: 0.1, val_loss: 2.1490
-
-Best Parameters:
-hidden_dim: 256
-learning_rate: 0.001
-Best validation loss: 1.5293
+The hyperparameter search was performed using validation loss as the primary metric for model selection. Each combination of hidden dimension and learning rate was evaluated, resulting in 77 different model configurations. The models were trained using the same balanced dataset from the second experimental run to maintain consistency and comparability.
 
 The hyperparameter optimization process revealed several key insights about the neural network architecture. The best performing model utilized a hidden dimension of 256 neurons with a learning rate of 0.001, achieving a validation loss of 1.5293. This configuration represents a balance between model complexity and training stability.
 
@@ -1757,7 +1736,7 @@ While the improvements are modest, they demonstrate the value of hyperparameter 
 
 ## Key Findings
 
-The analysis and experimentation conducted in this study revealed several key findings:
+The analysis and experimentation conducted in this study revealed several key findings.
 
 The optimization of the model architecture revealed that a hidden dimension of 256 neurons provided the best performance, effectively balancing model complexity and effectiveness. Larger architectures with 1024 or more neurons showed diminishing returns and potential overfitting issues, while very small architectures with fewer than 8 neurons lacked sufficient capacity to properly model the relationships in the data.
 
@@ -1782,3 +1761,7 @@ Another valuable direction would be to conduct a more extensive feature engineer
 Expanding the hyperparameter search space could also yield valuable insights. While this study focused on hidden dimensions and learning rates, other parameters such as batch size, activation functions, and optimization algorithms could be included in the optimization process. A more comprehensive grid search or the implementation of advanced hyperparameter optimization techniques like Bayesian optimization could potentially discover better model configurations.
 
 Finally, investigating the model's behavior on different subsets of the data or specific edge cases could provide insights into its limitations and guide future improvements. This could include analyzing misclassified examples in detail or evaluating the model's performance on particularly challenging instances. Such analysis could inform targeted improvements to the model architecture or training process.
+
+# Acknowledgement
+
+I would like to express my sincere gratitude to Professor Jin Cheon Na for his invaluable guidance and support throughout this research project. His expertise and insightful feedback have significantly contributed to shaping and improving this work.
