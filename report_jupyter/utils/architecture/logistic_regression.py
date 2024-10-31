@@ -44,7 +44,14 @@ class LogisticRegression(nn.Module):
         self.model = nn.Sequential(
             nn.Linear(input_dim, 8),
             nn.Softmax(dim=1)
-        ).to(self.device)
+        )
+        
+        # Use DataParallel if multiple GPUs are available
+        if torch.cuda.device_count() > 1:
+            print(f"Using {torch.cuda.device_count()} GPUs!")
+            self.model = nn.DataParallel(self.model)
+            
+        self.model = self.model.to(self.device)
         
         # Initialize optimizer and scheduler
         self.optimizer = optim.Adam(self.parameters(), lr=learning_rate)

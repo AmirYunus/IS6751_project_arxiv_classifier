@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
+import torch.nn.parallel
 
 # Data processing and utilities
 import numpy as np
@@ -36,9 +37,16 @@ class ConvolutionalNeuralNetwork(nn.Module):
         super().__init__()
         
         # Set device
-        self.device = torch.device("cuda" if torch.cuda.is_available() 
-                                 else "mps" if torch.backends.mps.is_available() 
-                                 else "cpu")
+        if torch.cuda.is_available():
+            if torch.cuda.device_count() > 1:
+                print(f"Using {torch.cuda.device_count()} GPUs!")
+                self.device = torch.device("cuda")
+            else:
+                self.device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         print(f"Using device: {self.device}")
         
         # Reshape input features into a square-like image
@@ -75,7 +83,11 @@ class ConvolutionalNeuralNetwork(nn.Module):
             nn.Softmax(dim=1)
         )
         
-        # Move model to device
+        # Move model to device and wrap with DataParallel if multiple GPUs
+        if torch.cuda.device_count() > 1:
+            self.conv_layers = nn.DataParallel(self.conv_layers)
+            self.fc_layers = nn.DataParallel(self.fc_layers)
+        
         self.to(self.device)
         
         # Initialize optimizer and scheduler

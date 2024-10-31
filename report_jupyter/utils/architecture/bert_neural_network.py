@@ -36,12 +36,20 @@ class BertNeuralNetwork(nn.Module):
         """
         super().__init__()
         
-        # Set device and batch size
-        self.device = torch.device("cuda" if torch.cuda.is_available() 
-                                 else "mps" if torch.backends.mps.is_available() 
-                                 else "cpu")
-        self.batch_size = batch_size
+        # Set device
+        if torch.cuda.is_available():
+            if torch.cuda.device_count() > 1:
+                print(f"Using {torch.cuda.device_count()} GPUs!")
+                self.device = torch.device("cuda")
+            else:
+                self.device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
         print(f"Using device: {self.device}")
+        
+        self.batch_size = batch_size
         
         # Load pre-trained BERT model and tokenizer
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
@@ -50,8 +58,11 @@ class BertNeuralNetwork(nn.Module):
         # Classification head
         self.classifier = nn.Linear(768, num_classes)
         
-        # Move model to device
+        # Move model to device and wrap with DataParallel if multiple GPUs
         self.to(self.device)
+        if torch.cuda.device_count() > 1:
+            self.bert = nn.DataParallel(self.bert)
+            self.classifier = nn.DataParallel(self.classifier)
         
         # Initialize optimizer with different learning rates
         # Higher learning rate for classifier, lower for BERT layers

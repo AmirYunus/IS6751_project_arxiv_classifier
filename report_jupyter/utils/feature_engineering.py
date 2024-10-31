@@ -46,8 +46,8 @@ def __get_device() -> torch.device:
 
 def __load_bert_model(model_name: str):
     try:
-        tokenizer = BertTokenizer.from_pretrained(model_name)
-        model = BertModel.from_pretrained(model_name)
+        tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        model = BertModel.from_pretrained('bert-base-uncased')
         if torch.cuda.is_available() and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)
         return tokenizer, model
@@ -141,13 +141,13 @@ def __vectorize_column(df: pd.DataFrame, column: str, tokenizer: BertTokenizer, 
             return __vectorize_column(df, column, tokenizer, model, device, batch_size)
         raise e
 
-def lemmatize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
+def lemmatize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
     """
     Lemmatize the text data in specified columns of the DataFrame using BERT lemmatizer.
 
     Args:
         df (pd.DataFrame): The DataFrame containing text columns to lemmatize.
-        model_name (str): The name of the BERT model to use for lemmatization. Default is 'bert-large-uncased-whole-word-masking-squad2'.
+        model_name (str): The name of the BERT model to use for lemmatization. Default is 'bert-base-uncased'.
         batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:
@@ -170,13 +170,13 @@ def lemmatize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-wh
             return lemmatize(df, model_name, batch_size)
         raise e
 
-def vectorize(df: pd.DataFrame, model_name: str = 'deepset/bert-large-uncased-whole-word-masking-squad2', batch_size: int = 32) -> pd.DataFrame:
+def vectorize(df: pd.DataFrame, model_name: str = 'bert-base-uncased', batch_size: int = 32) -> pd.DataFrame:
     """
     Vectorize the text data in specified columns of the DataFrame using a BERT model.
 
     Args:
         df (pd.DataFrame): The DataFrame containing the text columns to be vectorized.
-        model_name (str): The name of the BERT model to use. Default is 'bert-large-uncased-whole-word-masking-squad2'.
+        model_name (str): The name of the BERT model to use. Default is 'bert-base-uncased'.
         batch_size (int): The number of samples to process at once. Default is 32.
 
     Returns:

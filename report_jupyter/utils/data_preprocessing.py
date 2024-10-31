@@ -3,7 +3,6 @@ import pandas as pd
 
 # Natural Language Processing
 import re
-import spacy
 from nltk.corpus import stopwords as __stopwords
 from nltk.tokenize import word_tokenize
 

@@ -117,7 +117,7 @@ def categories(df: pd.DataFrame) -> None:
     plt.figure(figsize=(14, 8))
 
     # Create a bar plot of category counts using seaborn with default colors
-    sns.barplot(x='category', y='count', data=category_counts)
+    ax = sns.barplot(x='category', y='count', data=category_counts)
 
     # Set the title and labels for the plot
     plt.title('Distribution of Categories', fontsize=20, fontweight='bold')
@@ -129,7 +129,7 @@ def categories(df: pd.DataFrame) -> None:
 
     # Add count labels on top of each bar
     for i, v in enumerate(category_counts['count']):
-        plt.text(i, v, f'{v:,}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+        ax.text(i, v, f' {v:,}', ha='center', va='bottom', fontsize=10, fontweight='bold')
 
     # Adjust the layout to prevent clipping of labels
     plt.tight_layout()
@@ -161,7 +161,14 @@ def text_length(df: pd.DataFrame) -> None:
 
         # Distribution plot
         fig, ax = __create_basic_plot(figsize=(12, 6))
-        sns.histplot(data=df, x=column, kde=True, ax=ax)
+        sns_plot = sns.histplot(data=df, x=column, kde=True, ax=ax)
+        
+        # Add count labels on top of each bar
+        for p in sns_plot.patches:
+            ax.text(p.get_x() + p.get_width()/2., p.get_height(),
+                   f' {int(p.get_height())}',
+                   ha='center', va='bottom', fontweight='bold')
+            
         ax.set_title(f'Distribution of {text_type.capitalize()} Lengths', fontsize=16, fontweight='bold')
         ax.set_xlabel(f'{text_type.capitalize()} Length (characters)', fontsize=12)
         ax.set_ylabel('Count', fontsize=12)
@@ -211,7 +218,12 @@ def text_length(df: pd.DataFrame) -> None:
     avg_lengths_melted = pd.melt(avg_lengths, id_vars=['category'], var_name='text_type', value_name='avg_length')
 
     fig, ax = __create_basic_plot(figsize=(14, 8))
-    sns.barplot(data=avg_lengths_melted, x='category', y='avg_length', hue='text_type', ax=ax)
+    sns_plot = sns.barplot(data=avg_lengths_melted, x='category', y='avg_length', hue='text_type', ax=ax)
+    
+    # Add value labels on top of each bar
+    for container in ax.containers:
+        ax.bar_label(container, label_type='edge', fontweight='bold')
+        
     ax.set_title('Average Text Lengths by Category', fontsize=16, fontweight='bold')
     ax.set_xlabel('Category', fontsize=12)
     ax.set_ylabel('Average Length (characters)', fontsize=12)
@@ -250,12 +262,13 @@ def word_frequency(df: pd.DataFrame, top_n: int = 20) -> None:
         top_words = dict(sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:top_n])
         
         fig, ax = __create_basic_plot(figsize=(12, 8))
-        sns.barplot(x=list(top_words.values()), y=list(top_words.keys()), ax=ax)
+        sns_plot = sns.barplot(x=list(top_words.values()), y=list(top_words.keys()), ax=ax)
         
         ax.set_title(f'Top {top_n} Most Common Words in {str(column).title()} (Excluding Stop Words)', fontsize=16, fontweight='bold')
         ax.set_xlabel('Frequency', fontsize=12)
         ax.set_ylabel('Words', fontsize=12)
         
+        # Add value labels on the bars
         for i, v in enumerate(top_words.values()):
             ax.text(v, i, f' {v}', va='center', fontweight='bold')
         
@@ -270,12 +283,13 @@ def word_frequency(df: pd.DataFrame, top_n: int = 20) -> None:
             top_words = dict(sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:top_n])
             
             fig, ax = __create_basic_plot(figsize=(12, 8))
-            sns.barplot(x=list(top_words.values()), y=list(top_words.keys()), ax=ax)
+            sns_plot = sns.barplot(x=list(top_words.values()), y=list(top_words.keys()), ax=ax)
             
             ax.set_title(f'Top {top_n} Most Common Words in {str(column).title()} for {str(category).title()} (Excluding Stop Words)', fontsize=16, fontweight='bold')
             ax.set_xlabel('Frequency', fontsize=12)
             ax.set_ylabel('Words', fontsize=12)
             
+            # Add value labels on the bars
             for i, v in enumerate(top_words.values()):
                 ax.text(v, i, f' {v}', va='center', fontweight='bold')
             
@@ -287,6 +301,7 @@ def word_frequency(df: pd.DataFrame, top_n: int = 20) -> None:
 def ngram(df: pd.DataFrame, n_range: range = range(2, 6), top_k: int = 20) -> None:
     """
     Perform n-gram analysis on the titles, summaries, and comments of the DataFrame and plot the results.
+    Shows n-gram analysis for each category separately.
 
     Args:
         df (pd.DataFrame): The DataFrame containing 'title', 'summary', and 'comment' columns.
@@ -303,25 +318,46 @@ def ngram(df: pd.DataFrame, n_range: range = range(2, 6), top_k: int = 20) -> No
         return Counter(n_grams).most_common(top_k)
 
     def plot_ngrams(ngrams: list, title: str) -> None:
+        # Print the n-grams and their counts
+        print(f"\n{title}")
+        print("-" * len(title))
+        for gram, count in ngrams:
+            print(f"{' '.join(gram)}: {count}")
+        print()
+            
+        # Plot the n-grams
         fig, ax = __create_basic_plot(figsize=(15, 10))
         words, counts = zip(*ngrams)
-        ax.barh([' '.join(w) for w in words], counts)
+        sns_plot = ax.barh([' '.join(w) for w in words], counts)
         ax.set_title(title, fontsize=16, fontweight='bold')
         ax.set_xlabel("Count", fontsize=12)
         ax.set_ylabel("N-grams", fontsize=12)
         ax.invert_yaxis()
+        
+        # Add value labels on the bars with bold font
         for i, v in enumerate(counts):
-            ax.text(v, i, f' {v}', va='center', fontweight='bold')
+            ax.text(v, i, f' {v}', va='center', weight='bold')
+            
         plt.tight_layout()
         plt.show()
 
     columns = ['title', 'summary', 'comment']
+    categories = df['category'].unique()
     
     for column in columns:
+        # Overall n-grams first
         all_text = ' '.join(df[column].dropna().astype(str).str.lower())
         for n in n_range:
             top_ngrams = get_top_ngrams(all_text, n)
-            plot_ngrams(top_ngrams, f"Top {top_k} {n}-grams in {column.capitalize()}")
+            plot_ngrams(top_ngrams, f"Top {top_k} {n}-grams in {column.capitalize()} (All Categories)")
+            
+        # N-grams by category
+        for category in categories:
+            category_data = df[df['category'] == category]
+            category_text = ' '.join(category_data[column].dropna().astype(str).str.lower())
+            for n in n_range:
+                top_ngrams = get_top_ngrams(category_text, n)
+                plot_ngrams(top_ngrams, f"Top {top_k} {n}-grams in {column.capitalize()} ({category.capitalize()})")
 
     plt.close('all')  # Close all figures to free up memory
 
@@ -339,54 +375,61 @@ def topic_modelling(df: pd.DataFrame, num_topics: int = 5, num_words: int = 10) 
     """
 
     columns = ['title', 'summary', 'comment']
+    categories = ['All'] + list(df['category'].unique())
 
-    for column in columns:
-        print(f"\nAnalyzing '{column}' column")
+    for category in categories:
+        print(f"\nAnalyzing category: {category}")
         
-        text_data = df[column].dropna().astype(str).tolist()
+        # Filter data for category
+        category_df = df if category == 'All' else df[df['category'] == category]
         
-        # Create document-term matrix
-        vectorizer = CountVectorizer(max_df=0.95, min_df=2, stop_words='english')
-        doc_term_matrix = vectorizer.fit_transform(text_data)
+        for column in columns:
+            print(f"\nAnalyzing '{column}' column")
+            
+            text_data = category_df[column].dropna().astype(str).tolist()
+            
+            # Create document-term matrix
+            vectorizer = CountVectorizer(max_df=0.95, min_df=2, stop_words='english')
+            doc_term_matrix = vectorizer.fit_transform(text_data)
 
-        # Create and fit the LDA model
-        lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
-        lda_output = lda_model.fit_transform(doc_term_matrix)
+            # Create and fit the LDA model
+            lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
+            lda_output = lda_model.fit_transform(doc_term_matrix)
 
-        # Print the top words for each topic
-        print(f"Top {num_words} words for each of the {num_topics} topics:")
-        feature_names = vectorizer.get_feature_names_out()
-        for topic_idx, topic in enumerate(lda_model.components_):
-            top_words = [feature_names[i] for i in topic.argsort()[:-num_words - 1:-1]]
-            print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
-            print()
+            # Print the top words for each topic
+            print(f"Top {num_words} words for each of the {num_topics} topics:")
+            feature_names = vectorizer.get_feature_names_out()
+            for topic_idx, topic in enumerate(lda_model.components_):
+                top_words = [feature_names[i] for i in topic.argsort()[:-num_words - 1:-1]]
+                print(f"Topic {topic_idx + 1}: {', '.join(top_words)}")
+                print()
 
-        # Visualize the topics
-        pyLDAvis.enable_notebook()
-        vis = pyLDAvis.lda_model.prepare(lda_model, doc_term_matrix, vectorizer)
-        display(vis)
+            # Visualize the topics
+            pyLDAvis.enable_notebook()
+            vis = pyLDAvis.lda_model.prepare(lda_model, doc_term_matrix, vectorizer)
+            display(vis)
 
-        # Assign dominant topic to each document
-        dominant_topics = lda_output.argmax(axis=1)
+            # Assign dominant topic to each document
+            dominant_topics = lda_output.argmax(axis=1)
 
-        # Plot distribution of topics
-        plt.figure(figsize=(10, 6))
-        topic_counts = pd.Series(dominant_topics).value_counts().sort_index()
-        ax = topic_counts.plot(kind='bar')
-        plt.title(f'Distribution of Dominant Topics in {column.capitalize()}')
-        plt.xlabel('Topic')
-        plt.ylabel('Number of Documents')
+            # Plot distribution of topics
+            plt.figure(figsize=(10, 6))
+            topic_counts = pd.Series(dominant_topics).value_counts().sort_index()
+            ax = topic_counts.plot(kind='bar')
+            plt.title(f'Distribution of Dominant Topics in {column.capitalize()} ({category})')
+            plt.xlabel('Topic')
+            plt.ylabel('Number of Documents')
 
-        # Add value labels on the bars
-        for i, v in enumerate(topic_counts):
-            ax.text(i, v + 0.5, str(v), ha='center', va='bottom', fontweight='bold')
+            # Add value labels on the bars
+            for i, v in enumerate(topic_counts):
+                ax.text(i, v + 0.5, str(v), ha='center', va='bottom', fontweight='bold')
 
-        # Expand y-axis limit by 10%
-        y_max = ax.get_ylim()[1]
-        ax.set_ylim(0, y_max * 1.1)
+            # Expand y-axis limit by 10%
+            y_max = ax.get_ylim()[1]
+            ax.set_ylim(0, y_max * 1.1)
 
-        plt.tight_layout()
-        plt.show()
+            plt.tight_layout()
+            plt.show()
 
     return None
 
@@ -438,7 +481,12 @@ def named_entity_recognition(df: pd.DataFrame) -> None:
             entity_type_counts = Counter(entity_types)
 
             fig, ax = __create_basic_plot()
-            sns.barplot(x=list(entity_type_counts.keys()), y=list(entity_type_counts.values()), ax=ax)
+            sns_plot = sns.barplot(x=list(entity_type_counts.keys()), y=list(entity_type_counts.values()), ax=ax)
+            
+            # Add value labels on top of each bar
+            for i, v in enumerate(entity_type_counts.values()):
+                ax.text(i, v, f' {str(v)}', ha='center', va='bottom', fontweight='bold')
+                
             ax.set_title(f"Distribution of Named Entity Types in '{column}'" + (f" for {category}" if category != 'All' else ''))
             ax.set_xlabel("Entity Type")
             ax.set_ylabel("Count")
@@ -473,7 +521,14 @@ def sentiment_analysis(df: pd.DataFrame) -> None:
     columns = ['title_sentiment', 'summary_sentiment', 'comment_sentiment']
     for column in columns:
         plt.figure(figsize=(12, 6))
-        sns.histplot(data=df, x=column, kde=True)
+        sns_plot = sns.histplot(data=df, x=column, kde=True)
+        
+        # Add count labels on top of each bar
+        for p in sns_plot.patches:
+            plt.text(p.get_x() + p.get_width()/2., p.get_height(),
+                    f' {int(p.get_height())}',
+                    ha='center', va='bottom', fontweight='bold')
+            
         plt.title(f'Distribution of {column.split("_")[0].capitalize()} Sentiment Scores')
         plt.xlabel('Sentiment Score')
         plt.ylabel('Count')
@@ -483,7 +538,12 @@ def sentiment_analysis(df: pd.DataFrame) -> None:
     # Plotting average sentiment by category for each column
     for column in columns:
         plt.figure(figsize=(12, 6))
-        sns.barplot(x=category_sentiment.index, y=column, data=category_sentiment)
+        ax = sns.barplot(x=category_sentiment.index, y=column, data=category_sentiment)
+        
+        # Add value labels on top of each bar
+        for i, v in enumerate(category_sentiment[column]):
+            ax.text(i, v, f' {v:.3f}', ha='center', va='bottom', fontweight='bold')
+            
         plt.title(f'Average {column.split("_")[0].capitalize()} Sentiment by Category')
         plt.xlabel('Category')
         plt.ylabel('Sentiment Score')
@@ -524,7 +584,13 @@ def plot_text_complexity(df: pd.DataFrame) -> None:
     # Plot ARI scores by category
     for i, column in enumerate(columns):
         plt.figure(figsize=(10, 6))
-        sns.boxplot(x='category', y=f'{column}_ari', data=df.dropna(subset=[f'{column}_ari']))
+        sns_plot = sns.boxplot(x='category', y=f'{column}_ari', data=df.dropna(subset=[f'{column}_ari']))
+        
+        # Add median values on top of each box
+        medians = df.groupby('category')[f'{column}_ari'].median()
+        for i, median in enumerate(medians):
+            plt.text(i, median, f' {median:.1f}', ha='center', va='bottom', fontweight='bold')
+            
         plt.title(f'Text Complexity Analysis: {column.capitalize()} ARI by Category')
         plt.xlabel('Category')
         plt.ylabel('ARI Score')
@@ -535,7 +601,14 @@ def plot_text_complexity(df: pd.DataFrame) -> None:
     # Overall ARI distribution
     plt.figure(figsize=(12, 6))
     for column in columns:
-        sns.kdeplot(data=df[f'{column}_ari'].dropna(), label=column.capitalize())
+        sns_plot = sns.kdeplot(data=df[f'{column}_ari'].dropna(), label=column.capitalize())
+        
+        # Add peak values
+        peak_idx = sns_plot.lines[-1].get_ydata().argmax()
+        peak_x = sns_plot.lines[-1].get_xdata()[peak_idx]
+        peak_y = sns_plot.lines[-1].get_ydata()[peak_idx]
+        plt.text(peak_x, peak_y, f' {peak_y:.2f}', ha='center', va='bottom', fontweight='bold')
+        
     plt.title('Overall ARI Score Distribution')
     plt.xlabel('ARI Score')
     plt.ylabel('Density')
@@ -549,7 +622,12 @@ def plot_text_complexity(df: pd.DataFrame) -> None:
         
         for column in columns:
             plt.figure(figsize=(10, 6))
-            sns.boxplot(y=f'{column}_ari', data=category_df.dropna(subset=[f'{column}_ari']))
+            sns_plot = sns.boxplot(y=f'{column}_ari', data=category_df.dropna(subset=[f'{column}_ari']))
+            
+            # Add median value
+            median = category_df[f'{column}_ari'].median()
+            plt.text(0, median, f' {median:.1f}', ha='center', va='bottom', fontweight='bold')
+            
             plt.title(f'Text Complexity Analysis: {category} - {column.capitalize()} ARI')
             plt.ylabel('ARI Score')
             
@@ -560,7 +638,8 @@ def plot_text_complexity(df: pd.DataFrame) -> None:
                 plt.text(0.05, 0.95, f'Mean ARI: {mean_ari:.2f}', 
                          transform=plt.gca().transAxes, 
                          verticalalignment='top',
-                         color='r')
+                         color='r',
+                         fontweight='bold')
 
             plt.tight_layout()
             plt.show()
@@ -568,7 +647,13 @@ def plot_text_complexity(df: pd.DataFrame) -> None:
     # Overall ARI distribution by category
     for column in columns:
         plt.figure(figsize=(12, 6))
-        sns.boxplot(x='category', y=f'{column}_ari', data=df.dropna(subset=[f'{column}_ari']))
+        sns_plot = sns.boxplot(x='category', y=f'{column}_ari', data=df.dropna(subset=[f'{column}_ari']))
+        
+        # Add median values on top of each box
+        medians = df.groupby('category')[f'{column}_ari'].median()
+        for i, median in enumerate(medians):
+            plt.text(i, median, f' {median:.1f}', ha='center', va='bottom', fontweight='bold')
+            
         plt.title(f'Overall ARI Score Distribution by Category: {column.capitalize()}')
         plt.xlabel('Category')
         plt.ylabel('ARI Score')
