@@ -267,6 +267,16 @@ These patterns reflect the evolving nature of scientific research, where traditi
 #### Word Cloud Visualisation
 
 ### N-Gram Analysis
+
+The n-gram analysis reveals distinctive linguistic patterns across scientific disciplines, highlighting key methodologies, tools, and research focuses. Common bi-grams and tri-grams provide insights into the characteristic terminology and conceptual frameworks used in each field. For example, physics papers frequently use phrases related to experimental methods ("monte carlo simulations"), theoretical concepts ("quantum field theory"), and physical phenomena ("magnetic field"). Economics papers show frequent use of analytical terms ("treatment effects") and economic concepts ("economic growth"). Quantitative biology demonstrates strong focus on biological systems ("gene expression") and computational methods ("neural networks").
+
+For detailed n-gram frequency tables and analysis across all scientific disciplines, please refer to Appendix I.
+
+
+
+
+
+
 N-gram analysis provides deeper insights into how words are commonly used together in scientific texts across different fields. By examining frequent word combinations (2-grams, 3-grams, and 4-grams), we can better understand the key concepts, methodologies, and research focuses within each discipline. This analysis reveals common phrases and terminology that characterize the discourse in each field. Below, we present the most frequent n-grams for each scientific category, starting with Physics.
 
 #### Physics
@@ -1086,6 +1096,9 @@ Examining the 5-grams provides more detailed insights into specific research are
 The presence of terms related to deep reinforcement learning and behavioral analysis suggests an emerging focus on advanced algorithmic trading strategies and market behavior studies. Additionally, the appearance of agricultural commodity-related terms ("wheat maize soyabeans rice") indicates research interest in commodity markets and their dynamics.
 
 ### Topic Modelling
+Topic modeling analysis was performed across all scientific disciplines to identify key research themes and methodological approaches. The analysis revealed distinct patterns of research focus and methodology unique to each field. For detailed topic modeling results and analysis across all scientific disciplines, please refer to Appendix II.
+
+
 The topic modeling analysis for Quantitative Finance reveals several distinct research themes and methodological approaches within the field. Using Latent Dirichlet Allocation (LDA), we identified 5 main topics from the paper summaries, each representing different aspects of quantitative finance research. The analysis provides insights into the current research focus areas, methodological preferences, and emerging trends in the field. Below are the detailed findings for each topic, along with their relative prevalence in the corpus.
 
 
@@ -1287,6 +1300,13 @@ The distribution of documents across these topics shows a primary focus on finan
 
 
 ### Named Entity Recognition (NER)
+
+The Named Entity Recognition (NER) analysis reveals distinctive patterns in how different scientific disciplines use named entities in their research papers. The analysis shows that numerical entities (both cardinal and ordinal numbers) dominate across fields, reflecting the quantitative nature of scientific research. However, each discipline exhibits unique characteristics in entity usage that align with their methodological approaches and research focuses.
+
+For detailed Named Entity Recognition analysis results across all scientific disciplines, please refer to Appendix III.
+
+
+
 The Named Entity Recognition (NER) analysis across different scientific fields reveals distinct patterns in how various types of entities are used in research papers. This analysis helps understand the characteristic ways that different disciplines reference and discuss entities like numbers, organizations, people, and concepts. By examining the most common named entities in each field, we can gain insights into the writing styles, methodological approaches, and key focus areas that define different academic disciplines.
 
 The following sections present detailed NER analyses for Physics and Mathematics, highlighting both the commonalities and unique characteristics in how these fields employ different types of entities in their research communications. This analysis provides an interesting lens through which to understand the linguistic and conceptual frameworks that shape scientific discourse in these fields.
@@ -1604,6 +1624,354 @@ The implementation automatically identifies numerical columns by their data type
 The final feature set provides a rich representation of each paper, combining normalized semantic embeddings that capture complex meaning with interpretable metrics that quantify specific textual characteristics. The careful normalization process ensures that all features contribute meaningfully to the classification task while maintaining their relative relationships. The scaler object is preserved to enable consistent transformation of new data during model deployment.
 
 ## Experimentation (1st Run)
+
+### $M_0$: Logistic Regression
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.81      0.47      0.60      1258
+                                 economics       0.06      0.40      0.10        25
+electrical engineering and systems science       0.19      0.68      0.30       142
+                               mathematics       0.78      0.81      0.79      1353
+                                   physics       0.94      0.74      0.83      2679
+                      quantitative biology       0.35      0.76      0.48       201
+                      quantitative finance       0.37      0.73      0.49        90
+                                statistics       0.22      0.56      0.31       131
+
+                                  accuracy                           0.69      5879
+                                 macro avg       0.47      0.64      0.49      5879
+                              weighted avg       0.81      0.69      0.73      5879
+
+
+Confusion Matrix:
+array([[ 592,   57,  279,  118,   37,   51,   33,   91],
+       [   2,   10,    0,    1,    0,    2,    4,    6],
+       [  15,    3,   96,    3,    9,    4,    2,   10],
+       [  32,   17,   18, 1090,   72,   23,   21,   80],
+       [  69,   56,   90,  171, 1994,  194,   44,   61],
+       [  10,    5,    8,    2,   10,  153,    1,   12],
+       [   2,   10,    3,    1,    0,    0,   66,    8],
+       [   5,   10,   13,    7,    5,   11,    6,   74]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Logistic Regression model ($M_0$) demonstrated varying performance across different scientific categories, with notable strengths and challenges in specific areas. The model achieved an overall accuracy of 0.69, with weighted average precision of 0.81, recall of 0.69, and F1-score of 0.73.
+
+Looking at individual categories, Physics showed the strongest performance with a precision of 0.94 and recall of 0.74, resulting in an F1-score of 0.83. This indicates the model was highly accurate in identifying physics papers and captured a good proportion of them. Mathematics also performed well, with balanced precision (0.78) and recall (0.81) leading to a solid F1-score of 0.79. Computer Science showed high precision (0.81) but lower recall (0.47), suggesting the model was conservative in assigning this label, correctly identifying papers when it did so but missing many computer science papers.
+
+The model struggled significantly with several categories, particularly Economics, which had the lowest precision (0.06) and a moderate recall (0.40), resulting in a poor F1-score of 0.10. This is reflected in the confusion matrix, where only 10 out of 25 Economics papers were correctly classified. Electrical Engineering and Systems Science also showed weak performance with precision of 0.19 and recall of 0.68, indicating many false positives.
+
+The confusion matrix reveals interesting misclassification patterns. Computer Science papers were frequently misclassified as Electrical Engineering (279 cases) and Mathematics (118 cases), suggesting significant overlap in the feature space between these related fields. Physics, while having the best overall performance, saw some misclassifications into Mathematics (171 cases) and Quantitative Biology (194 cases). This pattern suggests that papers in these fields may share similar linguistic and structural characteristics.
+
+Statistics and Quantitative Finance showed moderate recall (0.56 and 0.73 respectively) but low precision (0.22 and 0.37), indicating these categories were often assigned incorrectly to papers from other fields. The confusion matrix shows that Statistics papers were frequently confused with Computer Science (91 cases) and Mathematics (80 cases), which is understandable given the mathematical nature of statistical research.
+
+The model's performance reflects the inherent challenges in distinguishing between closely related scientific fields, particularly those with interdisciplinary overlap. The strong performance in Physics and Mathematics suggests these fields may have more distinctive linguistic and structural characteristics, while the poorer performance in Economics and Electrical Engineering indicates these fields may share more features with other categories or have more variable content patterns.
+
+### $M_1$: Shallow Artificial Neural Network
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.84      0.47      0.60      1258
+                                 economics       0.08      0.48      0.14        25
+electrical engineering and systems science       0.19      0.72      0.30       142
+                               mathematics       0.77      0.82      0.80      1353
+                                   physics       0.95      0.74      0.83      2679
+                      quantitative biology       0.36      0.79      0.49       201
+                      quantitative finance       0.40      0.73      0.51        90
+                                statistics       0.22      0.56      0.31       131
+
+                                  accuracy                           0.70      5879
+                                 macro avg       0.48      0.67      0.50      5879
+                              weighted avg       0.82      0.70      0.73      5879
+
+Confusion Matrix:
+array([[ 592,   51,  302,  125,   23,   44,   27,   94],
+       [   1,   12,    0,    0,    0,    0,    4,    8],
+       [  13,    2,  102,    1,    7,    5,    2,   10],
+       [  26,   14,   18, 1116,   55,   23,   20,   81],
+       [  58,   40,  101,  195, 1991,  201,   39,   54],
+       [   8,    3,    8,    1,    9,  159,    3,   10],
+       [   2,   11,    2,    0,    1,    0,   66,    8],
+       [   7,    9,   11,    8,    4,   12,    6,   74]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Shallow Artificial Neural Network ($M_1$) demonstrated comparable overall performance to the Logistic Regression model, with a slightly higher accuracy of 0.70 and similar weighted metrics (precision: 0.82, recall: 0.70, F1-score: 0.73). This suggests that the added model complexity provided marginal benefits in capturing the underlying patterns in the data.
+
+Looking at individual categories, Physics maintained strong performance with the highest precision (0.95) and good recall (0.74), resulting in an F1-score of 0.83. This indicates the model excelled at identifying distinctive features of physics papers. Mathematics also showed robust performance with well-balanced precision (0.77) and recall (0.82), achieving an F1-score of 0.80, slightly better than the Logistic Regression model.
+
+Computer Science showed similar patterns to the previous model, with high precision (0.84) but lower recall (0.47), resulting in an F1-score of 0.60. The confusion matrix reveals persistent misclassification patterns, with 302 Computer Science papers incorrectly labeled as Electrical Engineering and 125 as Mathematics. This suggests that the additional model complexity did not significantly help in distinguishing between these related fields.
+
+Economics continued to be challenging for the model, though showing slight improvements in some metrics. While precision remained low at 0.08, recall improved to 0.48, resulting in a slightly better F1-score of 0.14. The confusion matrix shows that out of 25 Economics papers, only 12 were correctly classified, with notable misclassifications into Statistics (8 cases) and Computer Science (51 cases).
+
+Electrical Engineering and Systems Science maintained similar performance patterns with low precision (0.19) but improved recall (0.72), yielding an F1-score of 0.30. The confusion matrix indicates that while 102 papers were correctly classified, there was significant confusion with Computer Science (302 cases), suggesting the model struggled to identify unique characteristics of electrical engineering papers.
+
+Quantitative Biology showed moderate improvement with precision of 0.36 and high recall of 0.79, resulting in an F1-score of 0.49. The confusion matrix reveals that while 159 papers were correctly classified, there were still notable misclassifications, particularly with Physics (201 cases), indicating shared characteristics between these fields.
+
+Quantitative Finance and Statistics continued to show moderate performance. Quantitative Finance achieved precision of 0.40 and recall of 0.73 (F1-score: 0.51), while Statistics showed precision of 0.22 and recall of 0.56 (F1-score: 0.31). The confusion matrix shows persistent confusion between these fields and others, particularly Computer Science and Mathematics.
+
+The model's performance patterns suggest that while the shallow neural network architecture provided some improvements in specific areas, it largely maintained similar classification challenges as the Logistic Regression model. The persistent confusion between related fields indicates that the increased model complexity did not substantially improve the ability to distinguish between disciplines with overlapping characteristics. This suggests that the classification challenges may be more inherent to the nature of the data and the overlap between scientific disciplines rather than limitations of the model architecture.
+
+### $M_2$: Deep Artificial Neural Network
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.72      0.04      0.08      1258
+                                 economics       0.04      0.52      0.08        25
+electrical engineering and systems science       0.12      0.83      0.21       142
+                               mathematics       0.70      0.84      0.76      1353
+                                   physics       0.88      0.65      0.75      2679
+                      quantitative biology       0.24      0.78      0.36       201
+                      quantitative finance       0.29      0.81      0.42        90
+                                statistics       0.00      0.00      0.00       131
+
+                                  accuracy                           0.56      5879
+                                 macro avg       0.37      0.56      0.33      5879
+                              weighted avg       0.73      0.56      0.56      5879
+
+Confusion Matrix:
+array([[  51,  121,  633,  171,  108,  116,   51,    7],
+       [   0,   13,    1,    0,    1,    1,    9,    0],
+       [   0,    1,  118,    2,    6,   11,    4,    0],
+       [   5,   26,   23, 1136,   99,   20,   44,    0],
+       [  13,   86,  172,  297, 1738,  319,   50,    4],
+       [   0,   14,   15,    1,   12,  156,    1,    2],
+       [   0,   11,    0,    1,    1,    3,   73,    1],
+       [   2,   22,   25,   17,   12,   30,   23,    0]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Deep Artificial Neural Network ($M_2$) showed notably poorer performance compared to the previous models, with an overall accuracy of 0.56 and weighted metrics showing significant decline (precision: 0.73, recall: 0.56, F1-score: 0.56). This substantial drop in performance suggests that the increased model complexity may have led to overfitting or training difficulties.
+
+Looking at individual categories, the model showed highly variable performance across different fields. Physics maintained relatively strong performance with the highest precision (0.88) but suffered from reduced recall (0.65), resulting in an F1-score of 0.75. The confusion matrix shows that while 1,738 physics papers were correctly classified, there were significant misclassifications, particularly to Quantitative Biology (319 cases) and Mathematics (297 cases).
+
+Mathematics demonstrated good performance with balanced precision (0.70) and high recall (0.84), achieving an F1-score of 0.76. The confusion matrix reveals that 1,136 mathematics papers were correctly identified, though there were notable misclassifications to Physics (99 cases) and Computer Science (23 cases).
+
+Computer Science showed a dramatic decline in performance, with very low recall (0.04) despite moderate precision (0.72), resulting in a poor F1-score of 0.08. The confusion matrix reveals severe misclassification issues, with only 51 papers correctly classified out of 1,258. The majority were misclassified as Electrical Engineering (633 cases), Mathematics (171 cases), and Quantitative Biology (116 cases), suggesting the model struggled significantly to identify distinctive features of computer science papers.
+
+Electrical Engineering and Systems Science showed low precision (0.12) but high recall (0.83), yielding an F1-score of 0.21. While 118 papers were correctly classified, there was substantial confusion with other categories, particularly Computer Science papers being misclassified as Electrical Engineering (633 cases).
+
+Quantitative Biology achieved moderate performance with low precision (0.24) but high recall (0.78), resulting in an F1-score of 0.36. The confusion matrix shows 156 correct classifications, but also reveals significant misclassification patterns, particularly with papers from Physics being incorrectly labeled as Quantitative Biology (319 cases).
+
+Economics continued to be challenging, with very low precision (0.04) but improved recall (0.52), yielding a poor F1-score of 0.08. Out of 25 economics papers, only 13 were correctly classified, with misclassifications spread across multiple categories.
+
+Quantitative Finance showed low precision (0.29) but high recall (0.81), achieving an F1-score of 0.42. The confusion matrix indicates 73 correct classifications out of 90 papers, though the model frequently misclassified papers from other categories as Quantitative Finance.
+
+Statistics showed the poorest performance with zero precision, recall, and F1-score, indicating complete failure in classification. The confusion matrix reveals that not a single statistics paper was correctly classified out of 131, with misclassifications spread across multiple categories, particularly Quantitative Biology (30 cases) and Computer Science (25 cases).
+
+The model's performance patterns suggest that the deep neural network architecture actually hindered classification performance compared to simpler models. The severe degradation in performance, particularly for certain categories like Computer Science and Statistics, indicates that the model may have overfit to certain patterns in the training data or struggled to learn meaningful features from the complex architecture. The high recall but low precision in several categories suggests the model developed a bias toward certain classifications, leading to many false positives.
+
+### $M_3$: Recurrent Neural Network (RNN)
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.84      0.33      0.47      1258
+                                 economics       0.07      0.48      0.12        25
+electrical engineering and systems science       0.16      0.73      0.27       142
+                               mathematics       0.78      0.82      0.80      1353
+                                   physics       0.95      0.73      0.82      2679
+                      quantitative biology       0.30      0.75      0.43       201
+                      quantitative finance       0.41      0.68      0.51        90
+                                statistics       0.15      0.51      0.23       131
+
+                                  accuracy                           0.66      5879
+                                 macro avg       0.46      0.63      0.46      5879
+                              weighted avg       0.81      0.66      0.70      5879
+
+Confusion Matrix:
+array([[ 414,   82,  388,  114,   31,   55,   27,  147],
+       [   3,   12,    0,    1,    0,    0,    5,    4],
+       [  13,    2,  103,    1,    4,    8,    0,   11],
+       [  16,   16,   16, 1111,   59,   20,   24,   91],
+       [  29,   38,   96,  191, 1952,  249,   22,  102],
+       [   3,    2,   14,    1,   14,  150,    1,   16],
+       [   1,   14,    1,    1,    0,    0,   61,   12],
+       [  12,   11,   11,    8,    4,   11,    7,   67]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Recurrent Neural Network (RNN) model demonstrated moderate performance overall, with a weighted accuracy of 0.66 and weighted F1-score of 0.70. However, performance varied significantly across different categories.
+
+Computer Science showed strong precision (0.84) but poor recall (0.33), resulting in an F1-score of 0.47. The confusion matrix reveals that out of 1,258 computer science papers, only 414 were correctly classified, with significant misclassifications to Electrical Engineering (388 cases) and Statistics (147 cases). This suggests the model struggled to identify distinctive features of computer science papers, often confusing them with related technical fields.
+
+Economics continued to show weak performance with very low precision (0.07) but moderate recall (0.48), yielding a poor F1-score of 0.12. Out of 25 economics papers, only 12 were correctly classified, with misclassifications spread across multiple categories, particularly to Computer Science and Statistics.
+
+Electrical Engineering achieved low precision (0.16) but relatively high recall (0.73), resulting in an F1-score of 0.27. While 103 papers were correctly classified out of 142, there was notable confusion with Computer Science papers being incorrectly labeled as Electrical Engineering (388 cases), indicating difficulty in distinguishing between these related fields.
+
+Mathematics demonstrated strong overall performance with high precision (0.78) and recall (0.82), achieving the second-highest F1-score of 0.80. The confusion matrix shows 1,111 correct classifications out of 1,353 papers, with relatively minor misclassifications spread across other categories.
+
+Physics showed excellent precision (0.95) with good recall (0.73), resulting in the highest F1-score of 0.82. Out of 2,679 physics papers, 1,952 were correctly classified, though there were notable misclassifications to Quantitative Biology (249 cases) and Mathematics (191 cases).
+
+Quantitative Biology achieved moderate performance with low precision (0.30) but high recall (0.75), yielding an F1-score of 0.43. The model correctly classified 150 out of 201 papers, though it frequently misclassified papers from other categories, particularly Physics papers, as Quantitative Biology.
+
+Quantitative Finance showed moderate precision (0.41) and recall (0.68), resulting in an F1-score of 0.51. The confusion matrix indicates 61 correct classifications out of 90 papers, with misclassifications primarily to Economics and Statistics.
+
+Statistics demonstrated poor performance with low precision (0.15) and moderate recall (0.51), yielding an F1-score of 0.23. Only 67 out of 131 statistics papers were correctly classified, with misclassifications spread across multiple categories.
+
+The RNN model's performance patterns suggest it was most effective at classifying papers in well-defined fields like Physics and Mathematics, which likely have more distinctive vocabulary and patterns. However, it struggled with interdisciplinary fields and those with smaller representation in the dataset, such as Economics and Statistics. The high precision but lower recall in Computer Science, contrasted with low precision but higher recall in fields like Electrical Engineering, suggests the model developed some biases in its classification patterns, possibly due to class imbalance in the training data.
+
+### $M_4$: Convolutional Neural Network (CNN)
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.81      0.43      0.56      1258
+                                 economics       0.06      0.40      0.10        25
+electrical engineering and systems science       0.18      0.77      0.29       142
+                               mathematics       0.76      0.81      0.78      1353
+                                   physics       0.94      0.72      0.82      2679
+                      quantitative biology       0.32      0.73      0.45       201
+                      quantitative finance       0.34      0.70      0.45        90
+                                statistics       0.22      0.51      0.30       131
+
+                                  accuracy                           0.67      5879
+                                 macro avg       0.45      0.63      0.47      5879
+                              weighted avg       0.80      0.67      0.71      5879
+
+Confusion Matrix:
+array([[ 538,   73,  341,  120,   27,   45,   31,   83],
+       [   2,   10,    0,    0,    0,    1,    5,    7],
+       [  12,    3,  109,    1,    3,    6,    2,    6],
+       [  30,   17,   17, 1092,   73,   24,   25,   75],
+       [  57,   51,  108,  206, 1933,  223,   52,   49],
+       [  10,    3,   12,    1,   10,  147,    4,   14],
+       [   2,   12,    2,    1,    1,    1,   63,    8],
+       [  12,    9,   15,    9,    4,   10,    5,   67]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The CNN model demonstrated varied performance across different categories, with an overall accuracy of 0.67. The model showed particularly strong performance in certain fields while struggling with others.
+
+Computer Science achieved good precision (0.81) but moderate recall (0.43), resulting in an F1-score of 0.56. Out of 1,258 computer science papers, 538 were correctly classified, with significant misclassifications to Electrical Engineering (341 cases) and Mathematics (120 cases). This suggests the model was quite selective in classifying papers as Computer Science, but missed many true cases.
+
+Economics continued to show very weak performance with extremely low precision (0.06) but moderate recall (0.40), yielding a poor F1-score of 0.10. Only 10 out of 25 economics papers were correctly classified, with misclassifications spread across multiple categories, particularly to Statistics and Quantitative Finance.
+
+Electrical Engineering achieved low precision (0.18) but high recall (0.77), resulting in an F1-score of 0.29. While 109 papers were correctly classified out of 142, there were many false positives, particularly from Computer Science papers (341 cases) being incorrectly labeled as Electrical Engineering, indicating difficulty in distinguishing between these related technical fields.
+
+Mathematics showed strong overall performance with good precision (0.76) and high recall (0.81), achieving an F1-score of 0.78. The confusion matrix shows 1,092 correct classifications out of 1,353 papers, with some misclassifications to Physics (73 cases) and Statistics (75 cases).
+
+Physics demonstrated excellent precision (0.94) with good recall (0.72), resulting in a strong F1-score of 0.82. Out of 2,679 physics papers, 1,933 were correctly classified, though there were notable misclassifications to Quantitative Biology (223 cases) and Mathematics (206 cases).
+
+Quantitative Biology achieved moderate performance with low precision (0.32) but high recall (0.73), yielding an F1-score of 0.45. The model correctly classified 147 out of 201 papers, though it frequently misclassified papers from other categories as Quantitative Biology, particularly Physics papers (223 cases).
+
+Quantitative Finance showed moderate precision (0.34) and good recall (0.70), resulting in an F1-score of 0.45. The confusion matrix indicates 63 correct classifications out of 90 papers, with misclassifications spread across multiple categories.
+
+Statistics demonstrated relatively poor performance with low precision (0.22) and moderate recall (0.51), yielding an F1-score of 0.30. Only 67 out of 131 statistics papers were correctly classified, with misclassifications distributed across various categories.
+
+The CNN model's performance patterns reveal it was most effective at classifying papers in well-established fields with distinct characteristics, particularly Physics and Mathematics. However, it struggled with interdisciplinary fields and those with smaller representation in the dataset, such as Economics and Statistics. The model showed a particular weakness in distinguishing between related technical fields, as evidenced by the significant confusion between Computer Science and Electrical Engineering. The high precision but lower recall in fields like Computer Science and Physics suggests the model developed conservative classification patterns for these categories, while the opposite pattern in fields like Electrical Engineering and Quantitative Biology indicates more liberal classification tendencies for these areas.
+
+### $M_5$: Autoencoder Neural Network
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.77      0.10      0.18      1258
+                                 economics       0.03      0.36      0.06        25
+electrical engineering and systems science       0.12      0.85      0.22       142
+                               mathematics       0.73      0.82      0.78      1353
+                                   physics       0.90      0.71      0.79      2679
+                      quantitative biology       0.24      0.69      0.35       201
+                      quantitative finance       0.27      0.77      0.40        90
+                                statistics       0.00      0.00      0.00       131
+
+                                  accuracy                           0.59      5879
+                                 macro avg       0.38      0.54      0.35      5879
+                              weighted avg       0.76      0.59      0.60      5879
+
+Confusion Matrix:
+array([[ 129,  130,  608,  153,   71,  125,   42,    0],
+       [   3,    9,    0,    0,    1,    4,    8,    0],
+       [   3,    0,  120,    0,    6,    9,    4,    0],
+       [   8,   31,   27, 1114,   94,   29,   50,    0],
+       [   9,   68,  162,  237, 1898,  239,   65,    1],
+       [   0,   14,   23,    0,   18,  139,    7,    0],
+       [   2,   13,    2,    0,    0,    4,   69,    0],
+       [  13,   21,   22,   14,   13,   35,   13,    0]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Autoencoder Neural Network demonstrated mixed performance across different categories, with an overall accuracy of 0.59. The model showed significant variation in its ability to handle different classes, with some categories performing reasonably well while others showed poor results.
+
+Mathematics and Physics maintained strong performance, similar to other models. Mathematics achieved good precision (0.73) and strong recall (0.82), resulting in a robust F1-score of 0.78. The model correctly classified 1,114 out of 1,353 mathematics papers. Physics showed excellent precision (0.90) and good recall (0.71), yielding a strong F1-score of 0.79, with 1,898 correct classifications out of 2,679 papers.
+
+However, the model struggled significantly with Computer Science, achieving relatively high precision (0.77) but very poor recall (0.10), resulting in a weak F1-score of 0.18. Out of 1,258 computer science papers, only 129 were correctly classified, with a large number (608) being misclassified as Electrical Engineering. This suggests the model was highly selective in classifying papers as Computer Science but missed the vast majority of true cases.
+
+Electrical Engineering showed poor precision (0.12) but very high recall (0.85), leading to a low F1-score of 0.22. While 120 out of 142 papers were correctly classified, the model frequently misclassified papers from other categories as Electrical Engineering, particularly Computer Science papers (608 cases), indicating significant difficulty in distinguishing between these related fields.
+
+The model performed particularly poorly on Statistics, failing to correctly classify any papers in this category (precision, recall, and F1-score all 0.00). The confusion matrix shows that Statistics papers were distributed across other categories, with notable misclassifications to Quantitative Biology (35 cases) and Economics (21 cases).
+
+Economics showed extremely weak performance with very low precision (0.03) but moderate recall (0.36), resulting in a poor F1-score of 0.06. Only 9 out of 25 economics papers were correctly classified, with misclassifications spread across multiple categories.
+
+Quantitative Biology achieved moderate performance with low precision (0.24) but good recall (0.69), yielding an F1-score of 0.35. The model correctly classified 139 out of 201 papers, though it frequently misclassified papers from other categories as Quantitative Biology, particularly Physics papers (239 cases).
+
+Quantitative Finance showed similar patterns with low precision (0.27) but high recall (0.77), resulting in an F1-score of 0.40. The confusion matrix indicates 69 correct classifications out of 90 papers, with misclassifications distributed across various categories.
+
+The autoencoder's performance reveals significant challenges in handling interdisciplinary fields and maintaining consistent classification patterns. The model appears to have developed strong biases toward certain categories, particularly Electrical Engineering and Quantitative Biology, while being overly conservative in others like Computer Science. The complete failure with Statistics classification and the poor performance with Economics highlight particular weaknesses in handling smaller classes and maintaining balanced performance across all categories.
+
+### $M_6$: Residual Neural Network (ResNet)
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.80      0.34      0.48      1258
+                                 economics       0.06      0.48      0.11        25
+electrical engineering and systems science       0.17      0.75      0.27       142
+                               mathematics       0.77      0.82      0.79      1353
+                                   physics       0.93      0.72      0.81      2679
+                      quantitative biology       0.32      0.79      0.46       201
+                      quantitative finance       0.36      0.71      0.48        90
+                                statistics       0.16      0.43      0.23       131
+
+                                  accuracy                           0.66      5879
+                                 macro avg       0.45      0.63      0.45      5879
+                              weighted avg       0.80      0.66      0.69      5879
+
+Confusion Matrix:
+array([[ 427,   85,  379,  130,   38,   52,   27,  120],
+       [   1,   12,    0,    1,    0,    0,    5,    6],
+       [  15,    2,  106,    0,    5,    5,    3,    6],
+       [  20,   17,   15, 1112,   72,   17,   21,   79],
+       [  44,   44,  105,  200, 1920,  246,   50,   70],
+       [   5,    4,   10,    1,   11,  158,    2,   10],
+       [   4,   10,    3,    1,    1,    1,   64,    6],
+       [  18,   11,   14,    5,    9,   12,    6,   56]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Residual Neural Network (ResNet) demonstrated moderate performance with an overall accuracy of 0.66. The model showed varying effectiveness across different categories, with some classes performing notably well while others struggled significantly.
+
+Physics and Mathematics maintained strong performance, similar to previous models. Physics achieved excellent precision (0.93) and good recall (0.72), resulting in a strong F1-score of 0.81. The model correctly classified 1,920 out of 2,679 physics papers, with the main misclassifications being to Quantitative Biology (246 cases) and Mathematics (200 cases). Mathematics showed good precision (0.77) and strong recall (0.82), yielding a robust F1-score of 0.79, with 1,112 correct classifications out of 1,353 papers.
+
+Computer Science showed good precision (0.80) but poor recall (0.34), resulting in a moderate F1-score of 0.48. Out of 1,258 computer science papers, only 427 were correctly classified, with significant misclassifications to Electrical Engineering (379 cases) and Mathematics (130 cases). This suggests the model was highly selective in classifying papers as Computer Science but missed many true cases.
+
+Electrical Engineering demonstrated poor precision (0.17) but strong recall (0.75), leading to a weak F1-score of 0.27. While 106 out of 142 papers were correctly classified, the model frequently misclassified papers from other categories as Electrical Engineering, particularly Computer Science papers (379 cases), indicating difficulty in distinguishing between these related fields.
+
+Statistics showed weak performance with low precision (0.16) and moderate recall (0.43), resulting in a poor F1-score of 0.23. Only 56 out of 131 statistics papers were correctly classified, with misclassifications spread fairly evenly across other categories, particularly Computer Science (120 cases).
+
+Economics demonstrated extremely poor performance with very low precision (0.06) and moderate recall (0.48), yielding a weak F1-score of 0.11. Only 12 out of 25 economics papers were correctly classified, with misclassifications distributed across multiple categories, particularly Statistics (6 cases).
+
+Quantitative Biology achieved moderate performance with low precision (0.32) but strong recall (0.79), resulting in an F1-score of 0.46. The model correctly classified 158 out of 201 papers, though it frequently misclassified papers from other categories as Quantitative Biology, particularly Physics papers (246 cases).
+
+Quantitative Finance showed similar patterns with low precision (0.36) but good recall (0.71), yielding an F1-score of 0.48. The confusion matrix indicates 64 correct classifications out of 90 papers, with misclassifications distributed across various categories.
+
+The ResNet's performance reveals particular strengths in handling well-defined fields like Physics and Mathematics but shows significant challenges with interdisciplinary areas and smaller classes. The model appears to have developed strong biases toward certain categories, particularly Electrical Engineering, while being overly selective in others like Computer Science. The poor performance with Economics and Statistics highlights particular weaknesses in handling smaller classes and maintaining balanced performance across all categories.
+
+
+
+### Summary of Model Performance
+
+
 The initial experimental phase evaluated seven different model architectures on the original dataset to establish baseline performance metrics and identify promising approaches. The models ranged from simple linear classifiers to complex deep neural networks, allowing us to assess the relationship between model complexity and classification performance.
 
 The experiments were conducted using a standardized training pipeline with consistent hyperparameters across models where applicable. All models were trained on the same feature set, including the BERT embeddings, word counts, entity counts, sentiment scores, and complexity metrics described in previous sections. The training process utilized early stopping with a patience of 5 epochs to prevent overfitting, and model checkpointing to save the best performing weights based on validation loss.
@@ -1674,6 +2042,159 @@ This balanced dataset served as the foundation for our second experimental run, 
 
 
 ## Experimentation (2nd Run)
+
+### $M_7$: Logistic Regression
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.56      0.28      0.37      1258
+                                 economics       0.04      0.56      0.07        25
+electrical engineering and systems science       0.12      0.60      0.20       142
+                               mathematics       0.66      0.77      0.71      1353
+                                   physics       0.91      0.30      0.46      2679
+                      quantitative biology       0.11      0.73      0.20       201
+                      quantitative finance       0.27      0.84      0.40        90
+                                statistics       0.23      0.24      0.23       131
+
+                                  accuracy                           0.44      5879
+                                 macro avg       0.36      0.54      0.33      5879
+                              weighted avg       0.70      0.44      0.47      5879
+
+Confusion Matrix:
+array([[ 353,  174,  395,  111,   30,  103,   59,   33],
+       [   2,   14,    0,    1,    1,    1,    6,    0],
+       [  26,    5,   85,    1,    5,   15,    4,    1],
+       [  85,   32,   21, 1045,   39,   53,   36,   42],
+       [ 144,   94,  154,  430,  815,  932,   88,   22],
+       [   5,   15,   15,    1,    8,  146,    4,    7],
+       [   0,    9,    4,    0,    0,    1,   76,    0],
+       [  17,   23,   21,    6,    1,   19,   13,   31]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Logistic Regression model ($M_7$) demonstrated mixed performance across different classes in this experimental run. Looking at the classification report, we observe significant variations in performance metrics across categories, with some notable changes compared to the baseline model ($M_0$).
+
+The model showed strongest performance in identifying physics papers, achieving a high precision of 0.91 (improved from 0.85 in $M_0$), though with a lower recall of 0.30 (decreased from 0.42), resulting in an F1-score of 0.46 (down from 0.56). This shift indicates that while the model became more selective in classifying physics papers with fewer false positives, it also became more conservative, missing more actual physics papers. The confusion matrix reveals that out of 2,679 physics papers, only 815 were correctly classified, with a significant number being misclassified as quantitative biology (932 papers) and mathematics (430 papers) - a pattern that wasn't as pronounced in $M_0$.
+
+Mathematics papers were handled relatively well, with balanced precision (0.66, similar to $M_0$'s 0.65) and improved recall (0.77, up from 0.71) leading to the highest F1-score among all categories at 0.71 (improved from 0.68). The confusion matrix shows 1,045 correct classifications out of 1,353 mathematics papers, demonstrating robust and improved performance for this category compared to the baseline.
+
+Computer science papers showed moderate precision (0.56, down from 0.61 in $M_0$) but significantly lower recall (0.28, decreased from 0.45), resulting in an F1-score of 0.37 (down from 0.52). This degradation in performance suggests that the balanced dataset approach may have actually hindered the model's ability to identify computer science papers correctly.
+
+The model's handling of minority classes showed mixed results compared to $M_0$. Economics papers showed very poor precision (0.04, down from 0.33) but higher recall (0.56, up from 0.25), resulting in a lower F1-score of 0.07 (down from 0.29). This suggests that while the balanced dataset helped identify more economics papers, it led to more false positives. Similarly, electrical engineering and quantitative biology both achieved lower precision scores but higher recall values compared to $M_0$, indicating a trade-off between precision and recall.
+
+Quantitative finance showed interesting changes, with lower precision of 0.27 (down from 0.50 in $M_0$) but significantly higher recall of 0.84 (up from 0.33), resulting in an improved F1-score of 0.40 (up from 0.40). This suggests that the balanced dataset helped the model identify more quantitative finance papers, though at the cost of more false positives.
+
+Statistics papers continued to be challenging, with balanced but poor precision and recall (0.23 and 0.24 respectively), showing minimal improvement from $M_0$'s performance.
+
+Overall, the model achieved an accuracy of 0.44, lower than $M_0$'s 0.52. The weighted averages (precision: 0.70, recall: 0.44) and macro averages (precision: 0.36, recall: 0.54) show different patterns compared to $M_0$, suggesting that while the balanced dataset approach helped improve recall for minority classes, it often came at the cost of precision and overall accuracy. This trade-off between better minority class detection and overall performance highlights the challenges in building a model that performs consistently across all scientific categories, even with balanced training data.
+
+### $M_8$: Shallow Artificial Neural Network
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.53      0.28      0.37      1258
+                                 economics       0.05      0.60      0.09        25
+electrical engineering and systems science       0.14      0.64      0.24       142
+                               mathematics       0.67      0.79      0.73      1353
+                                   physics       0.96      0.33      0.49      2679
+                      quantitative biology       0.13      0.71      0.22       201
+                      quantitative finance       0.30      0.84      0.44        90
+                                statistics       0.16      0.50      0.24       131
+
+                                  accuracy                           0.46      5879
+                                 macro avg       0.37      0.59      0.35      5879
+                              weighted avg       0.72      0.46      0.50      5879
+
+Confusion Matrix:
+array([[ 358,  163,  393,   93,   12,   69,   48,  122],
+       [   2,   15,    0,    1,    0,    0,    4,    3],
+       [  27,    5,   91,    1,    1,    4,    3,   10],
+       [  92,   32,   12, 1073,   14,   38,   36,   56],
+       [ 182,   74,  103,  419,  892,  808,   76,  125],
+       [   6,    8,   12,    1,    5,  142,    3,   24],
+       [   0,    8,    3,    0,    0,    0,   76,    3],
+       [  11,   16,   16,    5,    2,    9,    6,   66]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The Shallow Artificial Neural Network model ($M_8$) demonstrated varied performance across different scientific categories, showing some improvements and challenges compared to the baseline model ($M_1$).
+
+For computer science papers, the model achieved moderate precision of 0.53 (slightly lower than $M_1$'s 0.57) but struggled with recall at 0.28 (down from 0.42), resulting in an F1-score of 0.37 (decreased from 0.48). The confusion matrix reveals that out of 1,258 computer science papers, only 358 were correctly classified, with significant misclassifications spread across electrical engineering (393 papers) and statistics (122 papers). This suggests the model had difficulty distinguishing computer science papers from related technical fields.
+
+Mathematics papers showed strong performance with improved metrics across the board: precision of 0.67 (up from 0.63 in $M_1$) and notably higher recall of 0.79 (increased from 0.69), leading to an F1-score of 0.73 (improved from 0.66). The confusion matrix shows 1,073 correct classifications out of 1,353 mathematics papers, demonstrating robust performance in this category.
+
+Physics papers showed exceptional precision of 0.96 (significantly higher than $M_1$'s 0.82) but lower recall of 0.33 (decreased from 0.40), resulting in an F1-score of 0.49 (slightly down from 0.54). The confusion matrix indicates that while the model rarely misclassified other papers as physics (high precision), it frequently misclassified physics papers as quantitative biology (808 papers) and mathematics (419 papers) out of 2,679 total physics papers.
+
+For minority classes, the model showed interesting patterns. Economics papers achieved very low precision of 0.05 (down from 0.25 in $M_1$) but higher recall of 0.60 (up from 0.20), resulting in an F1-score of 0.09. This suggests that while the model identified more economics papers, it did so at the cost of many false positives. The confusion matrix shows only 15 correct classifications out of 25 economics papers.
+
+Electrical engineering papers showed similar trends with low precision of 0.14 (decreased from 0.31) but improved recall of 0.64 (up from 0.28), leading to an F1-score of 0.24. The confusion matrix reveals 91 correct classifications out of 142 papers, with misclassifications primarily as computer science.
+
+Quantitative biology showed improved recall of 0.71 (up from 0.33 in $M_1$) but lower precision of 0.13 (down from 0.40), resulting in an F1-score of 0.22. The confusion matrix shows 142 correct classifications out of 201 papers, indicating better detection of quantitative biology papers but with many false positives.
+
+Quantitative finance demonstrated strong recall of 0.84 (significantly improved from 0.29 in $M_1$) with moderate precision of 0.30 (down from 0.45), achieving an F1-score of 0.44 (improved from 0.35). The confusion matrix shows 76 correct classifications out of 90 papers, suggesting effective identification of quantitative finance papers.
+
+Statistics showed improved recall of 0.50 (up from 0.31 in $M_1$) but lower precision of 0.16 (down from 0.34), resulting in an F1-score of 0.24. The confusion matrix indicates 66 correct classifications out of 131 statistics papers.
+
+Overall, the model achieved an accuracy of 0.46, slightly lower than $M_1$'s 0.48. The weighted averages (precision: 0.72, recall: 0.46, F1-score: 0.50) and macro averages (precision: 0.37, recall: 0.59, F1-score: 0.35) show different patterns compared to $M_1$, suggesting that while the model improved in identifying minority classes (shown by higher recall values), it often did so at the expense of precision. This trade-off between better minority class detection and overall accuracy highlights the ongoing challenge of building models that perform consistently across all scientific categories.
+
+### $M_9$: Convolutional Neural Network (CNN)
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.55      0.31      0.40      1258
+                                 economics       0.04      0.52      0.07        25
+electrical engineering and systems science       0.15      0.65      0.24       142
+                               mathematics       0.71      0.76      0.74      1353
+                                   physics       0.95      0.38      0.54      2679
+                      quantitative biology       0.13      0.72      0.22       201
+                      quantitative finance       0.30      0.76      0.43        90
+                                statistics       0.19      0.44      0.27       131
+
+                                  accuracy                           0.48      5879
+                                 macro avg       0.38      0.57      0.36      5879
+                              weighted avg       0.73      0.48      0.53      5879
+
+Confusion Matrix:
+array([[ 391,  178,  404,   78,   18,   72,   34,   83],
+       [   2,   13,    0,    0,    1,    0,    5,    4],
+       [  28,    4,   93,    0,    1,    4,    2,   10],
+       [ 105,   33,   18, 1028,   28,   53,   34,   54],
+       [ 165,   85,   89,  325, 1012,  860,   71,   72],
+       [   7,   12,   16,    1,    4,  145,    3,   13],
+       [   0,   12,    2,    0,    0,    3,   68,    5],
+       [  12,   20,   18,    6,    1,   10,    7,   57]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The CNN model ($M_9$) demonstrated mixed performance across different classes, with notable variations in precision and recall metrics. Let's analyze the performance in detail:
+
+For computer science papers, the model achieved moderate precision of 0.55 (comparable to $M_4$'s 0.54) but struggled with recall at 0.31 (lower than $M_4$'s 0.39), resulting in an F1-score of 0.40. The confusion matrix shows that out of 1,258 computer science papers, only 391 were correctly classified, with significant misclassifications as electrical engineering (404 papers) and economics (178 papers). This suggests the model had difficulty distinguishing computer science papers from related technical fields, performing slightly worse than $M_4$ in this category.
+
+Mathematics papers showed strong performance with improved metrics: precision of 0.71 (higher than $M_4$'s 0.65) and recall of 0.76 (significantly higher than $M_4$'s 0.71), leading to an F1-score of 0.74. The confusion matrix shows 1,028 correct classifications out of 1,353 mathematics papers, demonstrating robust performance and improvement over $M_4$ in this category.
+
+Physics papers showed exceptional precision of 0.95 (significantly higher than $M_4$'s 0.84) but lower recall of 0.38 (decreased from $M_4$'s 0.42), resulting in an F1-score of 0.54. The confusion matrix indicates that while the model rarely misclassified other papers as physics (high precision), it frequently misclassified physics papers as quantitative biology (860 papers) and mathematics (325 papers) out of 2,679 total physics papers.
+
+For minority classes, the model showed varying patterns. Economics papers achieved very low precision of 0.04 (significantly down from $M_4$'s 0.29) but higher recall of 0.52 (improved from $M_4$'s 0.24), resulting in a poor F1-score of 0.07. The confusion matrix shows only 13 correct classifications out of 25 economics papers, indicating a trade-off between identifying more economics papers at the cost of many false positives.
+
+Electrical engineering papers showed similar trends with precision of 0.15 (decreased from $M_4$'s 0.33) but improved recall of 0.65 (significantly up from $M_4$'s 0.31), leading to an F1-score of 0.24. The confusion matrix reveals 93 correct classifications out of 142 papers, with misclassifications spread across multiple categories.
+
+Quantitative biology showed improved recall of 0.72 (up from $M_4$'s 0.35) but lower precision of 0.13 (down from $M_4$'s 0.42), resulting in an F1-score of 0.22. The confusion matrix shows 145 correct classifications out of 201 papers, indicating better detection of quantitative biology papers but with many false positives.
+
+Quantitative finance demonstrated strong recall of 0.76 (significantly improved from $M_4$'s 0.31) with moderate precision of 0.30 (down from $M_4$'s 0.47), achieving an F1-score of 0.43. The confusion matrix shows 68 correct classifications out of 90 papers, suggesting effective identification of quantitative finance papers but with reduced precision.
+
+Statistics showed improved recall of 0.44 (up from $M_4$'s 0.34) but lower precision of 0.19 (down from $M_4$'s 0.36), resulting in an F1-score of 0.27. The confusion matrix indicates 57 correct classifications out of 131 statistics papers.
+
+Overall, the model achieved an accuracy of 0.48, slightly lower than $M_4$'s 0.49. The weighted averages (precision: 0.73, recall: 0.48, F1-score: 0.53) and macro averages (precision: 0.38, recall: 0.57, F1-score: 0.36) show different patterns compared to $M_4$. The CNN model generally improved recall for minority classes but often at the expense of precision, suggesting a shift in the bias-variance trade-off. While the model became better at identifying minority classes, it did so with less certainty, leading to more false positives. This pattern indicates that while the CNN architecture brought some improvements in class detection, it may benefit from further optimization to better balance precision and recall across all categories.
+
+
+### Experiment Results
+
 In the second experimental run, we evaluated the three selected models (Logistic Regression, Shallow ANN, and CNN) on the balanced dataset. This phase aimed to assess whether addressing the class imbalance would lead to improved model performance and more consistent results across classes.
 
 Each model was trained using identical preprocessing and feature engineering pipelines from the first run, with the key difference being the balanced training data. We maintained consistent hyperparameter settings from the first experimental phase to isolate the effects of data balancing on model performance.
@@ -1701,6 +2222,56 @@ A particularly interesting observation is the convergence of weighted and macro 
 
 
 ## Experimentation (3rd Run)
+
+### $M_{10}$: Hyperparameter Optimised ANN
+Classification Report:
+                                            precision    recall  f1-score   support
+
+                          computer science       0.51      0.30      0.38      1258
+                                 economics       0.05      0.64      0.09        25
+electrical engineering and systems science       0.14      0.64      0.23       142
+                               mathematics       0.68      0.79      0.73      1353
+                                   physics       0.97      0.35      0.52      2679
+                      quantitative biology       0.15      0.73      0.25       201
+                      quantitative finance       0.37      0.81      0.51        90
+                                statistics       0.17      0.52      0.26       131
+
+                                  accuracy                           0.47      5879
+                                 macro avg       0.38      0.60      0.37      5879
+                              weighted avg       0.72      0.47      0.51      5879
+
+Confusion Matrix:
+array([[ 379,  179,  416,   82,   11,   53,   30,  108],
+       [   2,   16,    0,    1,    0,    0,    6,    0],
+       [  25,    6,   91,    1,    1,    4,    3,   11],
+       [ 100,   36,   15, 1075,   14,   32,   23,   58],
+       [ 222,   74,  113,  421,  941,  726,   57,  125],
+       [   7,    6,   14,    1,    5,  147,    1,   20],
+       [   0,   10,    3,    1,    0,    0,   73,    3],
+       [  11,   19,   14,    5,    2,    8,    4,   68]])
+
+Top to Down: True Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+Left to Right: Predicted Prediction in this order: computer science, economics, electrical engineering and systems science, mathematics, physics, quantitative biology, quantitative finance, statistics.
+
+The hyperparameter optimized ANN (M₁₀) shows mixed results compared to the baseline shallow ANN (M₈). While the overall accuracy improved slightly from 0.76 to 0.77 as shown in the evaluation metrics, a detailed analysis of the classification report reveals some interesting patterns and trade-offs.
+
+Looking at class-specific performance, the model shows varying effectiveness across different categories. Physics papers achieved the highest precision at 0.97, indicating that when the model predicts a paper as physics, it is correct 97% of the time. However, the recall for physics is relatively low at 0.35, suggesting that the model fails to identify many physics papers, classifying them incorrectly into other categories.
+
+Mathematics papers show more balanced performance with 0.68 precision and 0.79 recall, resulting in the highest F1-score of 0.73 among all categories. This indicates that the model is particularly effective at identifying and classifying mathematics papers, maintaining a good balance between precision and recall.
+
+Computer science papers show moderate precision (0.51) but low recall (0.30), resulting in an F1-score of 0.38. This suggests that while the model is reasonably accurate when it predicts a paper as computer science, it misses many computer science papers, potentially classifying them into other categories.
+
+The model struggles significantly with economics papers, achieving only 0.05 precision despite a relatively high recall of 0.64. This extremely low precision indicates that the model frequently misclassifies papers from other categories as economics, resulting in many false positives and a poor F1-score of 0.09.
+
+The confusion matrix provides deeper insights into the model's classification patterns. A significant number of physics papers (726) are misclassified as quantitative biology, which explains the low recall for physics despite its high precision. Mathematics shows strong diagonal values (1075 correct classifications), confirming its good overall performance. Computer science has substantial misclassifications spread across multiple categories, particularly into electrical engineering and systems science (416 papers). Economics shows weak diagonal values (only 16 correct classifications), explaining its poor precision.
+
+Comparing these results to M₈, while the overall accuracy shows a slight improvement, the class-wise performance reveals that the hyperparameter optimization has led to some trade-offs. The model appears to have developed stronger biases towards certain classes (like physics in terms of precision) while potentially sacrificing balanced performance across all categories.
+
+The macro-average metrics (precision: 0.38, recall: 0.60, F1-score: 0.37) compared to the weighted averages (precision: 0.72, recall: 0.47, F1-score: 0.51) indicate significant class imbalance effects. This disparity between macro and weighted metrics was not present in M₈, suggesting that while the hyperparameter optimization improved overall accuracy, it may have made the model more susceptible to class imbalance issues.
+
+
+### Results
 Building upon the insights gained from the second experimental run, we conducted a third phase focused on optimizing the neural network architecture through extensive hyperparameter tuning. This phase aimed to identify the optimal model configuration that could further improve upon the strong performance achieved with the balanced dataset.
 
 The hyperparameter search focused on two critical aspects of neural network design: the hidden layer dimensions and learning rates. These parameters were chosen for optimization as they significantly impact both the model's capacity to learn complex patterns and its training dynamics. By conducting a comprehensive grid search across these parameters, we aimed to find the configuration that would maximize the model's discriminative power while maintaining stable training.
@@ -1733,6 +2304,9 @@ The hyperparameter-optimized model achieves a 77% accuracy, representing a one p
 An interesting observation is the identical values between weighted and macro-averaged metrics for both models. This suggests a relatively balanced performance across different classes, as significant class imbalances would typically result in disparities between weighted and macro-averaged metrics. This balance is maintained even after hyperparameter optimization, indicating that the tuning process did not introduce bias toward any particular class.
 
 While the improvements are modest, they demonstrate the value of hyperparameter optimization in fine-tuning model performance. The consistent nature of these improvements across all metrics suggests that the optimized model is more robust and reliable than its baseline counterpart, even if the gains are not dramatic.
+
+For more detailed results and analysis, including comprehensive performance metrics, confusion matrices, and class-wise evaluation statistics, please refer to Appendix IV.
+
 
 ## Key Findings
 
